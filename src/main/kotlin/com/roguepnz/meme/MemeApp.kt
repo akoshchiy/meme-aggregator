@@ -1,26 +1,34 @@
 package com.roguepnz.meme
 
-import io.ktor.application.call
-import io.ktor.response.respondText
-import io.ktor.routing.get
+import com.roguepnz.meme.api.FeedController
+import com.roguepnz.meme.api.HelloController
+import com.roguepnz.meme.source.RedditMemeSource
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import kotlinx.coroutines.runBlocking
 
 fun main() {
-    val server = embeddedServer(Netty, 8080) {
-//        routing {
-//            get("/") {
-//                call.respondText("Hello, World!")
-//            }
-//        }
-//        routing {
-//
-//        }
 
-        routing(FeedController().routing())
-        routing(HelloController().routing())
+    runBlocking {
+        val listing = RedditMemeSource("ich_iel").load()
+        println(listing)
     }
 
-    server.start(true)
+
+//    val server = embeddedServer(Netty, 8080) {
+////        routing {
+////            get("/") {
+////                call.respondText("Hello, World!")
+////            }
+////        }
+////        routing {
+////
+////        }
+//
+//        routing(FeedController().routing())
+//        routing(HelloController().routing())
+//    }
+//
+//    server.start(true)
 }

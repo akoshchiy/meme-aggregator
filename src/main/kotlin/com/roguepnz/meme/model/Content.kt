@@ -1,4 +1,4 @@
 package com.roguepnz.meme.model
 
-class Content {
-}
+data class Content(val url: String)
+

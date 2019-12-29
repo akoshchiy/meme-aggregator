@@ -15,8 +15,11 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    compile("io.ktor:ktor-server-netty:$ktorVersion")
-    compile("ch.qos.logback:logback-classic:1.2.3")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-client-json:$ktorVersion")
+    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
+    implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("ch.qos.logback:logback-classic:1.2.3")
 }
 
 tasks {
