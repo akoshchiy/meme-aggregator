@@ -9,11 +9,17 @@ import io.ktor.server.netty.Netty
 
 fun main() {
     val server = embeddedServer(Netty, 8080) {
-        routing {
-            get("/") {
-                call.respondText("Hello, World!")
-            }
-        }
+//        routing {
+//            get("/") {
+//                call.respondText("Hello, World!")
+//            }
+//        }
+//        routing {
+//
+//        }
+
+        routing(FeedController().routing())
+        routing(HelloController().routing())
     }
 
     server.start(true)
