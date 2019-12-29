@@ -24,18 +24,18 @@ data class RedditListingData(
     val children: List<RedditLink>
 )
 
-class RedditMemeSource(val subreddit: String) {
+class RedditMemeSource(private val client: HttpClient) {
 
-    private val client: HttpClient = HttpClient(Apache) {
-        install(JsonFeature) {
-            serializer = JacksonSerializer {
-                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
-            }
-        }
-    }
+//    private val client: HttpClient = HttpClient(Apache) {
+//        install(JsonFeature) {
+//            serializer = JacksonSerializer {
+//                configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+//                configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
+//            }
+//        }
+//    }
 
     suspend fun load(): RedditListing {
-        return client.get("https://reddit.com/r/$subreddit/new.json")
+        return client.get("https://reddit.com/r/ich_iel/new.json")
     }
 }
