@@ -6,7 +6,6 @@ import io.ktor.routing.get
 
 class FeedController : KtorController {
 
-
     override fun routing(): RoutingConf = {
         get("/") {
             call.respondText("Hello, World!")

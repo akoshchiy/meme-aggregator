@@ -20,6 +20,7 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:1.2.3")
+    testCompile("junit:junit:4.12")
 }
 
 tasks {

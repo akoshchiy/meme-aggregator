@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.roguepnz.meme.api.FeedController
 import com.roguepnz.meme.api.HelloController
-import com.roguepnz.meme.source.RedditMemeSource
+import com.roguepnz.meme.source.reddit.RedditMemeSource
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.json.JacksonSerializer

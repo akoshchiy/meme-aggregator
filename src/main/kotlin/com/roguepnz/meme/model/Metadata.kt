@@ -1,4 +1,9 @@
 package com.roguepnz.meme.model
 
-class Metadata {
-}
+data class Metadata(
+    val contentId: String,
+    val publishTime: Int,
+    val likesCount: Int,
+    val dislikesCount: Int,
+    val commentsCount: Int
+)

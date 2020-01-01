@@ -1,4 +1,3 @@
 package com.roguepnz.meme.model
 
-class Feed {
-}
+data class Feed(val items: List<Content>)
