@@ -1,10 +1,15 @@
-package com.roguepnz.meme
+package com.roguepnz.memeagg
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.roguepnz.meme.api.FeedController
-import com.roguepnz.meme.api.HelloController
-import com.roguepnz.meme.source.reddit.RedditMemeSource
+import com.roguepnz.memeagg.api.FeedController
+import com.roguepnz.memeagg.api.HelloController
+import com.roguepnz.memeagg.crawler.ContentCrawler
+import com.roguepnz.memeagg.source.ContentSourceLoader
+import com.roguepnz.memeagg.source.ngag.NGagContentSource
+import com.roguepnz.memeagg.source.ngag.NGagSourceConfig
+import com.roguepnz.memeagg.source.ngag.api.NGagClient
+import com.roguepnz.memeagg.source.reddit.RedditMemeSource
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.json.JacksonSerializer
@@ -52,6 +57,9 @@ object AppContainer {
                 }
             }
         }
-        put(RedditMemeSource(get(HttpClient::class)))
+
+        put(ContentSourceLoader(get(HttpClient::class)))
+
+        put(ContentCrawler(get(ContentSourceLoader::class)))
     }
 }

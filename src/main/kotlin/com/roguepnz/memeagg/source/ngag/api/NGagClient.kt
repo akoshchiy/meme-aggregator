@@ -1,9 +1,8 @@
-package com.roguepnz.meme.source.ngag.api
+package com.roguepnz.memeagg.source.ngag.api
 
-import com.roguepnz.meme.model.Post
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
-
+import java.lang.Exception
 
 class NGagClient(private val client: HttpClient) {
 
@@ -12,54 +11,57 @@ class NGagClient(private val client: HttpClient) {
         val urlTpl = "https://9gag.com/v1/tag-posts/tag/%s/type/fresh?c=%d"
         return client.get(urlTpl.format(tag, offset))
     }
-
-//    suspend fun getComments(postId: String): NGagCommentResult {
-//        val urlTpl =
-//            "https://comment-cdn.9gag.com/v1/cacheable/comment-list.json?appId=a_dd8f2b7d304a10edaf6f29517ea0ca4100a43d1b&url=http:%2F%2F9gag.com%2Fgag%2FaPR80yP&count=100&order=ts&origin=https:%2F%2F9gag.com"
-//
-//
-//
-//
-//        TODO()
-//
-//
-//    }
-
-    private fun mapResult(res: NGagPostResult): List<Post> {
-        res.data.posts.asSequence()
-            .map {
-
-
-            }
-
-
-//        for (post in res.data.posts) {
-//            post.
-//
-//        }
-
-        TODO("later")
-    }
 }
 
 data class NGagPostResult(val meta: NGagMeta, val data: NGagPostData)
 
 data class NGagMeta(val timestamp: Int, val status: String, val sid: String)
 
-data class NGagPostData(val posts: List<NGagPost>, val tag: NGagTag, val nextCursor: String)
+data class NGagPostData(val posts: List<NGagPost>, val tag: NGagTag, val nextCursor: String?) {
+
+    val nextOffset: Int?
+        get() = Integer.parseInt(nextCursor?.substringAfter("c="))
+
+}
 
 data class NGagTag(val key: String, val url: String)
 
 data class NGagPost(
     val id: String,
     val url: String,
+    val type: String,
     val title: String,
     val upVoteCount: Int,
     val downVoteCount: Int,
     val creationTs: Int,
     val commentsCount: Int,
     val images: Map<String, NGagPostImage>
-)
+) {
+    val isPhoto: Boolean get() = type == "Photo"
+    val isAnimated: Boolean get() = type == "Animated"
+    val isVideo: Boolean get() = type == "Video"
+
+//    fun extractPayload(): String =
+//        extractUrl(
+//            when {
+//                isPhoto -> ".jpg"
+//                isAnimated -> ".mp4"
+//                isVideo -> ".webp"
+//                else -> throw IllegalArgumentException("undefined payload type")
+//            }
+//        )
+
+    fun extractUrl(ext: String): String {
+        val url = images.values.asSequence()
+            .sortedByDescending { it.width }
+            .map { if (ext == ".webp") it.webpUrl ?: "" else it.url }
+            .firstOrNull() { it.contains(ext) }
+        if (url == null) {
+            throw Exception("wtf")
+        }
+        return url
+    }
+}
 
 data class NGagPostImage(
     val width: Int,

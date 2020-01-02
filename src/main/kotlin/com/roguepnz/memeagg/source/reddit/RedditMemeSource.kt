@@ -1,4 +1,4 @@
-package com.roguepnz.meme.source.reddit
+package com.roguepnz.memeagg.source.reddit
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.ktor.client.HttpClient
