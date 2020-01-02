@@ -7,6 +7,7 @@ import com.roguepnz.memeagg.source.model.RawContent
 import com.roguepnz.memeagg.source.ngag.api.NGagClient
 import com.roguepnz.memeagg.source.ngag.api.NGagPost
 import com.roguepnz.memeagg.source.ngag.api.NGagPostResult
+import com.roguepnz.memeagg.source.state.StateProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
@@ -14,25 +15,26 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 
 class NGagContentSource(private val config: NGagSourceConfig,
-                        private val client: NGagClient) : ContentSource {
+                        private val client: NGagClient,
+                        private val stateProvider: StateProvider<NGagState>) : ContentSource {
 
     override fun listen(): ReceiveChannel<RawContent> {
         val channel = Channel<RawContent>(100)
 
         GlobalScope.launch(Dispatchers.IO) {
-            var offset = 0
-
+            val state = stateProvider.getOrDefault { NGagState() }
             while (true) {
-                val result = client.getPosts(config.tag, offset)
+                val result = client.getPosts(config.tag, state.lastCursor)
                 val content = extractContent(result)
                 if (content.isEmpty()) {
-                    // TODO crawl is over
                     break
                 }
                 content.forEach {
                     channel.offer(it)
                 }
-                offset = result.data.nextOffset ?: break
+                val nextOffset = result.data.nextOffset ?: break
+                state.lastCursor = nextOffset
+                stateProvider.save(state)
             }
         }
 

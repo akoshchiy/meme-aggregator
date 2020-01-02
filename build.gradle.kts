@@ -7,6 +7,7 @@ version = "1.0-SNAPSHOT"
 
 val ktorVersion = "1.2.6"
 val javaVersion = "11"
+val kmongoVersion = "3.11.2"
 
 repositories {
     jcenter()
@@ -20,6 +21,8 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:1.2.3")
+    implementation("org.litote.kmongo:kmongo-coroutine:$kmongoVersion")
+//    implementation("org.litote.kmongo:kmongo:$kmongoVersion")
     testCompile("junit:junit:4.12")
 }
 

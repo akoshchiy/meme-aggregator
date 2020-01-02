@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.roguepnz.memeagg.api.FeedController
 import com.roguepnz.memeagg.api.HelloController
 import com.roguepnz.memeagg.crawler.ContentCrawler
+import com.roguepnz.memeagg.db.MongoDatabaseBuilder
 import com.roguepnz.memeagg.source.ContentSourceLoader
 import com.roguepnz.memeagg.source.ngag.NGagContentSource
 import com.roguepnz.memeagg.source.ngag.NGagSourceConfig
@@ -14,6 +15,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.json.JacksonSerializer
 import io.ktor.client.features.json.JsonFeature
+import org.litote.kmongo.coroutine.CoroutineDatabase
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
 
@@ -57,9 +59,9 @@ object AppContainer {
                 }
             }
         }
+        put(MongoDatabaseBuilder.build())
 
-        put(ContentSourceLoader(get(HttpClient::class)))
-
+        put(ContentSourceLoader(get(HttpClient::class), get(CoroutineDatabase::class)))
         put(ContentCrawler(get(ContentSourceLoader::class)))
     }
 }
