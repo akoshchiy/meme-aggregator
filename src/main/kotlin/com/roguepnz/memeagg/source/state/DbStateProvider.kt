@@ -1,10 +1,8 @@
 package com.roguepnz.memeagg.source.state
 
-import com.roguepnz.memeagg.db.getCollection
-import org.bson.codecs.pojo.annotations.BsonId
-import org.litote.kmongo.reactivestreams.*
-import org.litote.kmongo.coroutine.*
-import javax.swing.plaf.nimbus.State
+import com.roguepnz.memeagg.util.JSON
+import org.bson.Document
+import org.litote.kmongo.coroutine.CoroutineDatabase
 import kotlin.reflect.KClass
 
 private const val COLLECTION = "source_state"
@@ -12,15 +10,16 @@ private const val COLLECTION = "source_state"
 class DbStateProvider<T : Any>(private val db: CoroutineDatabase, private val id: String) : StateProvider<T> {
 
     override suspend fun save(state: T) {
-        db.getCollection<StateWrapper<T>>(COLLECTION).save(StateWrapper(id, state))
+        db.getCollection<Document>(COLLECTION).save(
+            Document()
+                .append("_id", id)
+                .append("state", state)
+        )
     }
 
-    override suspend fun get(): T? {
-        return db.getCollection<StateWrapper<T>>(COLLECTION).findOneById(id)?.state
+    override suspend fun get(type: KClass<T>): T? {
+        val doc = db.getCollection<Document>(COLLECTION).findOneById(id) ?: return null
+        val json = doc.get("state", Document::class.java).toJson()
+        return JSON.parse(json, type)
     }
-
-    private data class StateWrapper<T : Any>(
-        @BsonId val id: String,
-        val state: T
-    )
 }

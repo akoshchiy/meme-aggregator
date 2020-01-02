@@ -22,7 +22,7 @@ class NGagContentSource(private val config: NGagSourceConfig,
         val channel = Channel<RawContent>(100)
 
         GlobalScope.launch(Dispatchers.IO) {
-            val state = stateProvider.getOrDefault { NGagState() }
+            val state = stateProvider.getOrDefault(NGagState::class) { NGagState() }
             while (true) {
                 val result = client.getPosts(config.tag, state.lastCursor)
                 val content = extractContent(result)
