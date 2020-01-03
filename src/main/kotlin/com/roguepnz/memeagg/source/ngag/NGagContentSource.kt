@@ -4,6 +4,7 @@ import com.roguepnz.memeagg.model.ContentType
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.Payload
 import com.roguepnz.memeagg.source.model.RawContent
+import com.roguepnz.memeagg.source.model.RawMetadata
 import com.roguepnz.memeagg.source.ngag.api.NGagClient
 import com.roguepnz.memeagg.source.ngag.api.NGagPost
 import com.roguepnz.memeagg.source.ngag.api.NGagPostResult
@@ -18,27 +19,38 @@ class NGagContentSource(private val config: NGagSourceConfig,
                         private val client: NGagClient,
                         private val stateProvider: StateProvider<NGagState>) : ContentSource {
 
-    override fun listen(): ReceiveChannel<RawContent> {
-        val channel = Channel<RawContent>(100)
+    private val contentChannel: Channel<RawContent> = Channel(100)
+    private val metaUpdateChannel: Channel<RawMetadata> = Channel(100)
 
+    override fun start() {
         GlobalScope.launch(Dispatchers.IO) {
-            val state = stateProvider.getOrDefault(NGagState::class) { NGagState() }
-            while (true) {
-                val result = client.getPosts(config.tag, state.lastCursor)
-                val content = extractContent(result)
-                if (content.isEmpty()) {
-                    break
-                }
-                content.forEach {
-                    channel.offer(it)
-                }
-                val nextOffset = result.data.nextOffset ?: break
-                state.lastCursor = nextOffset
-                stateProvider.save(state)
-            }
+            doCrawling()
         }
+    }
 
-        return channel
+    override fun contentChannel(): ReceiveChannel<RawContent> {
+        return contentChannel
+    }
+
+    override fun metaUpdateChannel(): ReceiveChannel<RawMetadata> {
+        return metaUpdateChannel
+    }
+
+    private suspend fun doCrawling() {
+        val state = stateProvider.getOrDefault(NGagState::class) { NGagState() }
+        while (true) {
+            val result = client.getPosts(config.tag, state.lastCursor)
+            val content = extractContent(result)
+            if (content.isEmpty()) {
+                break
+            }
+            content.forEach {
+                contentChannel.offer(it)
+            }
+            val nextOffset = result.data.nextOffset ?: break
+            state.lastCursor = nextOffset
+            stateProvider.save(state)
+        }
     }
 
     private fun extractContent(result: NGagPostResult): List<RawContent> {

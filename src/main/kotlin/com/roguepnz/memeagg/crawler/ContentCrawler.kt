@@ -14,10 +14,10 @@ class ContentCrawler(private val loader: ContentSourceLoader) {
     }
 
     private fun listenSource(source: ContentSource) {
+        source.start()
         GlobalScope.launch(Dispatchers.IO) {
-            val channel = source.listen()
             while (true) {
-                val content = channel.receive()
+                val content = source.contentChannel().receive()
                 // TODO save to db
                 println(JSON.stringify(content))
             }
