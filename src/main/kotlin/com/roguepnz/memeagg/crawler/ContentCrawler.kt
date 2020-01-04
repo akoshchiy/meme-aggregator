@@ -1,16 +1,22 @@
 package com.roguepnz.memeagg.crawler
 
 import com.roguepnz.memeagg.source.ContentSource
-import com.roguepnz.memeagg.source.ContentSourceLoader
+import com.roguepnz.memeagg.source.ContentSourceBuilder
 import com.roguepnz.memeagg.util.JSON
+import com.typesafe.config.Config
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-class ContentCrawler(private val loader: ContentSourceLoader) {
+class ContentCrawler(config: Config, private val builder: ContentSourceBuilder) {
 
     fun start() {
-        loader.getSources().forEach { listenSource(it) }
+        // TODO distributed
+        // TODO async payload downloader
+        // TODO content duplicate detect
+        builder.buildSources(builder.sources).forEach {
+            listenSource(it)
+        }
     }
 
     private fun listenSource(source: ContentSource) {

@@ -1,20 +1,12 @@
 package com.roguepnz.memeagg
 
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.roguepnz.memeagg.api.FeedController
 import com.roguepnz.memeagg.api.HelloController
 import com.roguepnz.memeagg.crawler.ContentCrawler
-import com.roguepnz.memeagg.db.MongoDatabaseBuilder
-import com.roguepnz.memeagg.source.ContentSourceLoader
-import com.roguepnz.memeagg.source.ngag.NGagContentSource
-import com.roguepnz.memeagg.source.ngag.NGagSourceConfig
-import com.roguepnz.memeagg.source.ngag.api.NGagClient
-import com.roguepnz.memeagg.source.reddit.RedditMemeSource
+import com.roguepnz.memeagg.db.MongoDbBuilder
+import com.roguepnz.memeagg.http.HttpClientBuilder
+import com.roguepnz.memeagg.source.ContentSourceBuilder
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache.Apache
-import io.ktor.client.features.json.JacksonSerializer
-import io.ktor.client.features.json.JsonFeature
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import kotlin.reflect.KClass
 import kotlin.reflect.full.cast
@@ -42,26 +34,13 @@ object AppContainer {
         components.add(component)
     }
 
-    private fun put(initFn: () -> Any) {
-        components.add(initFn())
-    }
-
     init {
         put(FeedController())
         put(HelloController())
-        put {
-            HttpClient(Apache) {
-                install(JsonFeature) {
-                    serializer = JacksonSerializer {
-                        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                        configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
-                    }
-                }
-            }
-        }
-        put(MongoDatabaseBuilder.build())
+        put(HttpClientBuilder.build())
+        put(MongoDbBuilder.build())
 
-        put(ContentSourceLoader(get(HttpClient::class), get(CoroutineDatabase::class)))
-        put(ContentCrawler(get(ContentSourceLoader::class)))
+        put(ContentSourceBuilder(Config.sources, get(HttpClient::class), get(CoroutineDatabase::class)))
+        put(ContentCrawler(Config.crawler, get(ContentSourceBuilder::class)))
     }
 }

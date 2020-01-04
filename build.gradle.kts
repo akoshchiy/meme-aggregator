@@ -22,6 +22,7 @@ dependencies {
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("org.litote.kmongo:kmongo-coroutine:$kmongoVersion")
+    implementation("com.typesafe:config:1.4.0")
 //    implementation("org.litote.kmongo:kmongo:$kmongoVersion")
     testCompile("junit:junit:4.12")
 }

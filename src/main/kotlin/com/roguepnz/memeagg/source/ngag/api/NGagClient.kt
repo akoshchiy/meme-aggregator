@@ -1,30 +1,61 @@
 package com.roguepnz.memeagg.source.ngag.api
 
+import com.roguepnz.memeagg.model.ContentType
+import com.roguepnz.memeagg.source.model.Payload
+import com.roguepnz.memeagg.source.model.RawContent
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import java.lang.Exception
 
 class NGagClient(private val client: HttpClient) {
 
-    suspend fun getPosts(tag: String, offset: Int): NGagPostResult {
-        // TODO handle errors
-        val urlTpl = "https://9gag.com/v1/tag-posts/tag/%s/type/fresh?c=%d"
-        return client.get(urlTpl.format(tag, offset))
+    suspend fun getByTag(tag: String, cursor: String): NGagContentResult {
+        val url = "https://9gag.com/v1/tag-posts/tag/$tag/type/fresh?$cursor"
+        val res = client.get<NGagPostResult>(url)
+        return extractContent(res)
     }
+
+    suspend fun getByGroup(group: String, cursor: String): NGagContentResult {
+        val url = "https://9gag.com/v1/group-posts/group/$group/type/fresh?$cursor"
+        val res = client.get<NGagPostResult>(url)
+        return extractContent(res)
+    }
+
+    private fun extractContent(result: NGagPostResult): NGagContentResult {
+        val content = result.data.posts
+            .asSequence()
+            .filter { it.supported }
+            .map {
+                RawContent(
+                    it.id,
+                    it.title,
+                    extractPayload(it),
+                    it.creationTs,
+                    it.upVoteCount,
+                    it.downVoteCount,
+                    it.commentsCount
+                )
+            }
+            .toList()
+        return NGagContentResult(content, result.data.nextCursor)
+    }
+
+    private fun extractPayload(post: NGagPost): Payload =
+        when {
+            post.isPhoto -> Payload(ContentType.IMAGE, post.extractUrl(".jpg"))
+            post.isVideo -> Payload(ContentType.VIDEO, post.extractUrl(".webp"))
+            post.isAnimated -> Payload(ContentType.VIDEO, post.extractUrl(".mp4"))
+            else -> throw IllegalArgumentException("undefined payload type: " + post.type)
+        }
 }
+
+data class NGagContentResult(val content: List<RawContent>, val cursor: String?)
 
 data class NGagPostResult(val meta: NGagMeta, val data: NGagPostData)
 
 data class NGagMeta(val timestamp: Int, val status: String, val sid: String)
 
-data class NGagPostData(val posts: List<NGagPost>, val tag: NGagTag, val nextCursor: String?) {
-
-    val nextOffset: Int?
-        get() = Integer.parseInt(nextCursor?.substringAfter("c="))
-
-}
-
-data class NGagTag(val key: String, val url: String)
+data class NGagPostData(val posts: List<NGagPost>, val nextCursor: String?)
 
 data class NGagPost(
     val id: String,
@@ -41,25 +72,13 @@ data class NGagPost(
     val isAnimated: Boolean get() = type == "Animated"
     val isVideo: Boolean get() = type == "Video"
 
-//    fun extractPayload(): String =
-//        extractUrl(
-//            when {
-//                isPhoto -> ".jpg"
-//                isAnimated -> ".mp4"
-//                isVideo -> ".webp"
-//                else -> throw IllegalArgumentException("undefined payload type")
-//            }
-//        )
+    val supported: Boolean get() = isPhoto || isAnimated || isVideo
 
     fun extractUrl(ext: String): String {
-        val url = images.values.asSequence()
+        return images.values.asSequence()
             .sortedByDescending { it.width }
             .map { if (ext == ".webp") it.webpUrl ?: "" else it.url }
-            .firstOrNull() { it.contains(ext) }
-        if (url == null) {
-            throw Exception("wtf")
-        }
-        return url
+            .first { it.contains(ext) }
     }
 }
 
@@ -69,20 +88,3 @@ data class NGagPostImage(
     val url: String,
     val webpUrl: String?
 )
-
-//data class NGagCommentResult(val status: String, val error: String, val payload: NGagCommentPayload)
-//
-//data class NGagCommentPayload(val comments: List<NGagComment>)
-//
-//data class NGagComment(
-//    val commentId: String,
-//    val text: String,
-//    val timestamp: Int,
-//    val orderKey: String?,
-//    val likeCount: Int,
-//    val dislikeCount: Int,
-//    val coinCount: Int
-//)
-
-
-

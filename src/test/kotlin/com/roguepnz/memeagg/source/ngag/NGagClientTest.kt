@@ -36,7 +36,7 @@ class NGagClientTest {
     }
 
     suspend fun loadPosts(client: NGagClient, offset: Int) {
-        val result = client.getPosts("germany", offset)
+        val result = client.getByTag("germany", offset)
         val size = result.data.posts.size
         println("Done. offset: $offset, size: $size")
     }
