@@ -1,11 +1,10 @@
-package com.roguepnz.memeagg.source.ngag.api
+package com.roguepnz.memeagg.source.ngag
 
-import com.roguepnz.memeagg.model.ContentType
+import com.roguepnz.memeagg.core.model.ContentType
 import com.roguepnz.memeagg.source.model.Payload
 import com.roguepnz.memeagg.source.model.RawContent
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
-import java.lang.Exception
 
 class NGagClient(private val client: HttpClient) {
 

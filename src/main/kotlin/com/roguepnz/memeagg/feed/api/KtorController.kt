@@ -1,4 +1,4 @@
-package com.roguepnz.memeagg.api
+package com.roguepnz.memeagg.feed.api
 
 import io.ktor.routing.Routing
 

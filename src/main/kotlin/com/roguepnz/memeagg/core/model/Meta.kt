@@ -1,6 +1,6 @@
-package com.roguepnz.memeagg.model
+package com.roguepnz.memeagg.core.model
 
-data class Metadata(
+data class Meta(
     val publishTime: Int,
     val likesCount: Int,
     val dislikesCount: Int,

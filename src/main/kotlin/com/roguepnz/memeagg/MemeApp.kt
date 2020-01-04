@@ -1,6 +1,6 @@
 package com.roguepnz.memeagg
 
-import com.roguepnz.memeagg.api.KtorController
+import com.roguepnz.memeagg.feed.api.KtorController
 import com.roguepnz.memeagg.crawler.ContentCrawler
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer

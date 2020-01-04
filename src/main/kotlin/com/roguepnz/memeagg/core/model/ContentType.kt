@@ -1,4 +1,4 @@
-package com.roguepnz.memeagg.model
+package com.roguepnz.memeagg.core.model
 
 enum class ContentType {
     IMAGE,

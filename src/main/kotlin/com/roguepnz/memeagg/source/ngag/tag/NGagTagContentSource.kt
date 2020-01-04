@@ -3,7 +3,7 @@ package com.roguepnz.memeagg.source.ngag.tag
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.RawContent
 import com.roguepnz.memeagg.source.model.RawMetadata
-import com.roguepnz.memeagg.source.ngag.api.NGagClient
+import com.roguepnz.memeagg.source.ngag.NGagClient
 import com.roguepnz.memeagg.source.state.StateProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -15,8 +15,8 @@ class NGagTagContentSource(private val config: NGagTagConfig,
                            private val client: NGagClient,
                            private val stateProvider: StateProvider<NGagTagState>) : ContentSource {
 
-    private val contentChannel: Channel<RawContent> = Channel(100)
-    private val metaUpdateChannel: Channel<RawMetadata> = Channel(100)
+    private val contentChannel: Channel<RawContent> = Channel(config.bufferSize)
+    private val metaUpdateChannel: Channel<RawMetadata> = Channel(config.bufferSize)
 
     override fun start() {
         GlobalScope.launch(Dispatchers.IO) {

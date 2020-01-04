@@ -1,8 +1,10 @@
 package com.roguepnz.memeagg
 
-import com.roguepnz.memeagg.api.FeedController
-import com.roguepnz.memeagg.api.HelloController
+import com.roguepnz.memeagg.core.dao.ContentDao
+import com.roguepnz.memeagg.feed.api.FeedController
+import com.roguepnz.memeagg.feed.api.HelloController
 import com.roguepnz.memeagg.crawler.ContentCrawler
+import com.roguepnz.memeagg.crawler.ContentWriter
 import com.roguepnz.memeagg.db.MongoDbBuilder
 import com.roguepnz.memeagg.http.HttpClientBuilder
 import com.roguepnz.memeagg.source.ContentSourceBuilder
@@ -39,8 +41,10 @@ object AppContainer {
         put(HelloController())
         put(HttpClientBuilder.build())
         put(MongoDbBuilder.build())
-
+        put(ContentDao(get(CoroutineDatabase::class)))
         put(ContentSourceBuilder(Config.sources, get(HttpClient::class), get(CoroutineDatabase::class)))
-        put(ContentCrawler(Config.crawler, get(ContentSourceBuilder::class)))
+        put(ContentWriter(Config.crawler, get(ContentDao::class)))
+
+        put(ContentCrawler(Config.crawler, get(ContentSourceBuilder::class), get(ContentWriter::class)))
     }
 }

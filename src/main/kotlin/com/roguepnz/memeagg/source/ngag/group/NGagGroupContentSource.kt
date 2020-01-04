@@ -3,7 +3,7 @@ package com.roguepnz.memeagg.source.ngag.group
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.RawContent
 import com.roguepnz.memeagg.source.model.RawMetadata
-import com.roguepnz.memeagg.source.ngag.api.NGagClient
+import com.roguepnz.memeagg.source.ngag.NGagClient
 import com.roguepnz.memeagg.source.state.StateProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope

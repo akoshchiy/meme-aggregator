@@ -2,7 +2,6 @@ package com.roguepnz.memeagg.source.ngag
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
-import com.roguepnz.memeagg.source.ngag.api.NGagClient
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache.Apache
 import io.ktor.client.features.json.JacksonSerializer
