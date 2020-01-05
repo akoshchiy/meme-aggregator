@@ -1,4 +1,6 @@
 package com.roguepnz.memeagg.core.model
 
-data class Content(val id: String, val contentType: ContentType, val url: String, val hash: String, val meta: Meta)
+import org.bson.codecs.pojo.annotations.BsonId
+
+data class Content(@BsonId val id: String, val type: ContentType, val url: String, val hash: String, val meta: Meta)
 
