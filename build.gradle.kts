@@ -24,6 +24,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.2.3")
     implementation("org.litote.kmongo:kmongo-coroutine:$kmongoVersion")
     implementation("com.typesafe:config:1.4.0")
+    implementation("software.amazon.awssdk:s3:2.10.42")
 //    implementation("org.litote.kmongo:kmongo:$kmongoVersion")
     testCompile("junit:junit:4.12")
 }

@@ -1,5 +1,6 @@
 package com.roguepnz.memeagg.cluster
 
+import com.mongodb.MongoBulkWriteException
 import com.mongodb.client.model.*
 import com.roguepnz.memeagg.util.Times
 import org.bson.BsonDateTime
@@ -12,22 +13,30 @@ class NodeSourceDao(private val config: NodeConfig, db: CoroutineDatabase) {
 
     private val collection = db.getCollection<Document>("node_source")
 
-    suspend fun insert(source: String) {
-        collection.createIndex(
-            Indexes.ascending("checkTime"),
-            IndexOptions().expireAfter(config.grabbedExpireTimeSec, TimeUnit.SECONDS)
-        )
+    suspend fun insert(sources: List<String>) {
+//        collection.createIndex(
+//            Indexes.ascending("checkTime"),
+//            IndexOptions().expireAfter(config.grabbedExpireTimeSec, TimeUnit.SECONDS)
+//        )
 
-        val doc = Document()
-            .append("_id", source)
-            .append("node", null)
-            .append("checkTime", BsonDateTime(System.currentTimeMillis()))
+        val docs = sources.map {
+            Document()
+                .append("_id", it)
+                .append("node", null)
+                .append("checkTime", BsonDateTime(System.currentTimeMillis()))
+        }
 
-        val options = FindOneAndReplaceOptions()
-            .upsert(true)
-            .returnDocument(ReturnDocument.AFTER)
+        val options = InsertManyOptions().ordered(false)
 
-        collection.findOneAndReplace(Filters.eq("_id", source), doc, options)
+        try {
+            collection.insertMany(docs, options)
+        } catch (e: MongoBulkWriteException) {
+            // TODO mongo insert ignore?
+            val ignore = !e.writeErrors.any { it.code != 11000 }
+            if (!ignore) {
+                throw e
+            }
+        }
     }
 
     suspend fun updateGrabbed(node: String) {
@@ -37,14 +46,21 @@ class NodeSourceDao(private val config: NodeConfig, db: CoroutineDatabase) {
     suspend fun tryGrab(node: String): String? {
         val update = Updates.combine(
             Updates.set("node", node),
-            Updates.set("checkTime", Times.now())
+            Updates.set("checkTime", BsonDateTime(System.currentTimeMillis()))
         )
 
         val options = FindOneAndUpdateOptions()
             .upsert(false)
             .returnDocument(ReturnDocument.AFTER)
 
-        val doc = collection.findOneAndUpdate(Filters.eq("node", null), update, options)
+        val checkTime = BsonDateTime(System.currentTimeMillis() - config.grabbedExpireTimeSec * 1000)
+
+        val filter = Filters.or(
+            Filters.eq("node", null),
+            Filters.lt("checkTime", checkTime)
+        )
+
+        val doc = collection.findOneAndUpdate(filter, update, options)
 
         return doc?.getString("_id")
     }

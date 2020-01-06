@@ -10,6 +10,9 @@ import com.roguepnz.memeagg.source.ngag.group.NGagGroupContentSource
 import com.roguepnz.memeagg.source.state.DbStateProvider
 import com.typesafe.config.Config
 import io.ktor.client.HttpClient
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.broadcast
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
 class ContentSourceBuilder(config: Config, private val httpClient: HttpClient, private val db: CoroutineDatabase) {
@@ -29,6 +32,11 @@ class ContentSourceBuilder(config: Config, private val httpClient: HttpClient, p
     }
 
     private fun build(config: ContentSourceConfig): ContentSource {
+
+//        val broadcast = GlobalScope.broadcast<Any>()
+//        broadcast.openSubscription()
+
+//        val ch = BroadcastChannel<Any>(100)
         return when(config.type) {
             SourceType.NGAG_TAG -> NGagTagContentSource(NGagTagConfig(config.config),
                 NGagClient(httpClient), DbStateProvider(db, config.id))

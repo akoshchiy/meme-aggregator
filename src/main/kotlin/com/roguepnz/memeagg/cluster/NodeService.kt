@@ -16,10 +16,10 @@ class NodeService(private val config: NodeConfig,
 
     private val logger = loggerFor<NodeService>()
 
-    val id: String = Strings.randomAlphaNumeric(6)
+    val nodeId: String = Strings.randomAlphaNumeric(6)
 
     fun start() {
-        logger.info("starting crawling node: $id")
+        logger.info("starting crawling node: $nodeId")
         GlobalScope.launch {
             publishSources()
             launch {
@@ -30,15 +30,16 @@ class NodeService(private val config: NodeConfig,
     }
 
     private suspend fun publishSources() {
-        builder.sources.forEach {
-            dao.insert(it)
-        }
+        dao.insert(builder.sources)
+//        builder.sources.forEach {
+//            dao.insert(it)
+//        }
     }
 
     private suspend fun grabSources() {
         var workers = config.workersCount
         while (workers > 0) {
-            val sourceId = dao.tryGrab(id)
+            val sourceId = dao.tryGrab(nodeId)
             if (sourceId != null) {
                 startCrawl(sourceId)
                 workers -= 1
@@ -50,13 +51,13 @@ class NodeService(private val config: NodeConfig,
 
     private fun startCrawl(id: String) {
         val source = builder.build(id)
-        logger.info("grabbed source: $source, node: $id")
+        logger.info("grabbed source: $id, node: $nodeId")
         crawler.crawl(source)
     }
 
     private suspend fun updateGrabbed() {
         while (true) {
-            dao.updateGrabbed(id)
+            dao.updateGrabbed(nodeId)
             delay(Duration.ofSeconds(config.checkGrabbedSec))
         }
     }
