@@ -43,7 +43,7 @@ class NodeService(private val config: NodeConfig,
                 startCrawl(sourceId)
                 workers -= 1
             } else {
-                delay(Duration.ofSeconds(5))
+                delay(Duration.ofSeconds(config.grabDelaySec))
             }
         }
     }
@@ -57,7 +57,7 @@ class NodeService(private val config: NodeConfig,
     private suspend fun updateGrabbed() {
         while (true) {
             dao.updateGrabbed(id)
-            delay(Duration.ofSeconds(config.checkGrabbedSec.toLong()))
+            delay(Duration.ofSeconds(config.checkGrabbedSec))
         }
     }
 }

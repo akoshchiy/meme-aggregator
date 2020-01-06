@@ -4,6 +4,7 @@ import com.typesafe.config.Config
 
 class NodeConfig(config: Config) {
     val workersCount = config.getInt("workersCount")
-    val grabbedExpireTimeSec = config.getInt("grabbedExpireTimeSec")
-    val checkGrabbedSec = config.getInt("checkGrabbedSec")
+    val grabbedExpireTimeSec = config.getLong("grabbedExpireTimeSec")
+    val checkGrabbedSec = config.getLong("checkGrabbedSec")
+    val grabDelaySec = config.getLong("grabDelaySec")
 }

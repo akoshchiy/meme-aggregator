@@ -15,7 +15,7 @@ class NodeSourceDao(private val config: NodeConfig, db: CoroutineDatabase) {
     suspend fun insert(source: String) {
         collection.createIndex(
             Indexes.ascending("checkTime"),
-            IndexOptions().expireAfter(config.grabbedExpireTimeSec.toLong(), TimeUnit.SECONDS)
+            IndexOptions().expireAfter(config.grabbedExpireTimeSec, TimeUnit.SECONDS)
         )
 
         val doc = Document()
