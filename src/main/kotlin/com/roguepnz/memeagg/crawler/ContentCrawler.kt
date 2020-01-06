@@ -8,21 +8,20 @@ import com.roguepnz.memeagg.util.JSON
 import com.typesafe.config.Config
 import kotlinx.coroutines.*
 
-class ContentCrawler(config: CrawlerConfig, private val builder: ContentSourceBuilder, private val writer: ContentWriter) {
+class ContentCrawler(config: CrawlerConfig, private val writer: ContentWriter) {
 
-    fun start() {
-        // TODO distributed
-        // TODO async payload downloader
-        // TODO content duplicate detect
+//    fun start() {
+//        // TODO distributed
+//        // TODO async payload downloader
+//        // TODO content duplicate detect
+//        writer.start()
+//
+////        builder.buildSources(builder.sources).forEach {
+////            listenSource(it)
+////        }
+//    }
 
-        writer.start()
-
-        builder.buildSources(builder.sources).forEach {
-            listenSource(it)
-        }
-    }
-
-    private fun listenSource(source: ContentSource) {
+    fun crawl(source: ContentSource) {
         source.start()
         GlobalScope.launch(Dispatchers.IO) {
             while (true) {

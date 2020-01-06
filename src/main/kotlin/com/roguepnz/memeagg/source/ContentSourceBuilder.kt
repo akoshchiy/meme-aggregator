@@ -24,8 +24,8 @@ class ContentSourceBuilder(config: Config, private val httpClient: HttpClient, p
             .toMap()
     }
 
-    fun buildSources(ids: List<String>): List<ContentSource> {
-        return ids.map { build(configs[it] ?: error("config not found for source: $it")) }
+    fun build(id: String): ContentSource {
+        return build(configs[id] ?: error("config not found for source: $id"))
     }
 
     private fun build(config: ContentSourceConfig): ContentSource {

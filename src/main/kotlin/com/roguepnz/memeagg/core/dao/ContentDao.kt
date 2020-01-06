@@ -7,31 +7,27 @@ import com.roguepnz.memeagg.core.model.Content
 import com.roguepnz.memeagg.core.model.ContentPreview
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
-private const val COLLECTION = "content"
 
-class ContentDao(private val db: CoroutineDatabase) {
+class ContentDao(db: CoroutineDatabase) {
+
+    private val collection = db.getCollection<Content>("content")
 
     suspend fun getById(id: String): Content? {
-        return db.getCollection<Content>(COLLECTION).findOneById(id)
+        return collection.findOneById(id)
     }
 
     suspend fun insert(batch: List<Content>) {
-        val collection = db.getCollection<Content>(COLLECTION)
-
-        collection.ensureIndex(Indexes.descending("meta.publishTime"))
-
-        val options = InsertManyOptions().ordered(false)
-        collection.insertMany(batch, options)
+        collection.createIndex(Indexes.descending("meta.publishTime"))
+        collection.insertMany(batch, InsertManyOptions().ordered(false))
     }
 
     suspend fun getPage(): List<Content> {
-        val collection = db.getCollection<Content>(COLLECTION)
-
         return collection.find()
             .sort(Sorts.descending("meta.publishTime"))
             .limit(50)
             .toList()
     }
+
 
     suspend fun getPreview(): List<ContentPreview> {
         TODO("")

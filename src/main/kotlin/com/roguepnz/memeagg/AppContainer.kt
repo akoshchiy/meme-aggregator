@@ -1,5 +1,7 @@
 package com.roguepnz.memeagg
 
+import com.roguepnz.memeagg.cluster.NodeService
+import com.roguepnz.memeagg.cluster.NodeSourceDao
 import com.roguepnz.memeagg.core.dao.ContentDao
 import com.roguepnz.memeagg.feed.api.FeedController
 import com.roguepnz.memeagg.crawler.ContentCrawler
@@ -19,7 +21,7 @@ object AppContainer {
     fun <T : Any> get(type: KClass<T>): T {
         val list = getAll(type)
         if (list.isEmpty()) {
-            throw IllegalArgumentException()
+            throw IllegalArgumentException("type not found: $type")
         }
         return list[0]
     }
@@ -43,8 +45,17 @@ object AppContainer {
 
         put(ContentSourceBuilder(Config.sources, get(HttpClient::class), get(CoroutineDatabase::class)))
         put(ContentWriter(Config.crawler, get(ContentDao::class)))
-        put(ContentCrawler(Config.crawler, get(ContentSourceBuilder::class), get(ContentWriter::class)))
+        put(ContentCrawler(Config.crawler, get(ContentWriter::class)))
 
+        put(NodeSourceDao(Config.node, get(CoroutineDatabase::class)))
+        put(
+            NodeService(
+                Config.node,
+                get(NodeSourceDao::class),
+                get(ContentSourceBuilder::class),
+                get(ContentCrawler::class)
+            )
+        )
 
         put(FeedController(get(ContentDao::class)))
     }
