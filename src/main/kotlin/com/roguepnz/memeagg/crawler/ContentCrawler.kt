@@ -35,13 +35,14 @@ class ContentCrawler(private val writer: ContentWriter,
 
     fun crawl(id: String, source: ContentSource) {
 //        val ctx = newFixedThreadPoolContext(10, "source-worker")
-
         source.start()
         GlobalScope.launch(Dispatchers.IO) {
-            while (true) {
-                val raw = source.contentChannel().receive()
+            (1..10).map {
                 launch {
-                    processContent(id, raw)
+                    while (true) {
+                        val raw = source.contentChannel().receive()
+                        processContent(id, raw)
+                    }
                 }
             }
         }

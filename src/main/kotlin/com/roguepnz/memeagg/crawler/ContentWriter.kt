@@ -12,7 +12,6 @@ class ContentWriter(private val config: CrawlerConfig, private val dao: ContentD
     private val channel: Channel<Content> = Channel()
     private val batch: MutableList<Content> = ArrayList()
 
-
     fun start() {
         GlobalScope.launch {
             loop()
