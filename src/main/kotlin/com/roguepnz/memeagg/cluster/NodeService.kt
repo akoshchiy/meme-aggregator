@@ -52,7 +52,7 @@ class NodeService(private val config: NodeConfig,
     private fun startCrawl(id: String) {
         val source = builder.build(id)
         logger.info("grabbed source: $id, node: $nodeId")
-        crawler.crawl(source)
+        crawler.crawl(id, source)
     }
 
     private suspend fun updateGrabbed() {

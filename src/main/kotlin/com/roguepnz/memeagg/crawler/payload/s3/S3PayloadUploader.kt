@@ -1,15 +1,64 @@
 package com.roguepnz.memeagg.crawler.payload.s3
 
 import com.roguepnz.memeagg.crawler.payload.PayloadUploader
-import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration
+import kotlinx.coroutines.future.await
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
+import software.amazon.awssdk.core.async.AsyncRequestBody
+import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.s3.S3Configuration
+import software.amazon.awssdk.services.s3.model.*
+import java.net.URI
 
-class S3PayloadUploader : PayloadUploader {
+class S3PayloadUploader(private val config: S3Config) : PayloadUploader {
 
-    override suspend fun upload(): String {
-//        S3AsyncClient.builder()
-//            .endpointOverride()
+    private val client = buildClient()
 
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private fun buildClient(): S3AsyncClient {
+        val credentials = AwsBasicCredentials.create(config.accessKey, config.secretKey)
+
+        val s3Config = S3Configuration.builder()
+            .pathStyleAccessEnabled(true)
+            .checksumValidationEnabled(false)
+            .build()
+
+        return S3AsyncClient.builder()
+            .region(Region.AP_NORTHEAST_1)
+            .credentialsProvider(StaticCredentialsProvider.create(credentials))
+            .serviceConfiguration(s3Config)
+            .endpointOverride(URI.create(config.endpoint))
+            .build()
+    }
+
+    private suspend fun createBucket(bucket: String) {
+        val req = CreateBucketRequest.builder()
+            .bucket(bucket)
+            .acl(BucketCannedACL.PUBLIC_READ)
+            .build()
+
+        client.createBucket(req).await()
+    }
+
+    override suspend fun upload(key: String, data: ByteArray, contentType: String): String {
+//        createBucket(config.bucket)
+
+        val req = PutObjectRequest.builder()
+            .bucket(config.bucket)
+            .acl(ObjectCannedACL.PUBLIC_READ)
+            .contentType(contentType)
+            .key(key)
+            .build()
+
+        client.putObject(req, AsyncRequestBody.fromBytes(data)).await()
+
+        val urlReq = GetUrlRequest.builder()
+            .bucket(config.bucket)
+            .key(key)
+            .endpoint(URI.create(config.endpoint))
+            .region(Region.AP_NORTHEAST_1)
+            .build()
+
+        return client.utilities().getUrl(urlReq).toString()
     }
 }

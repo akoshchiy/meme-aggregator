@@ -2,6 +2,7 @@ package com.roguepnz.memeagg.util
 
 import kotlin.random.Random
 
+
 object Strings {
 
     private val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
