@@ -28,7 +28,7 @@ class ContentWriter(private val config: CrawlerConfig, private val dao: ContentD
             val remainingTime = deadline - System.currentTimeMillis()
 
             if (batch.isNotEmpty() && remainingTime <= 0 || batch.size >= config.writerQueueSize) {
-                dao.insert(batch)
+                dao.save(batch)
                 batch.clear()
                 continue
             }

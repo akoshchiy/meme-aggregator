@@ -14,6 +14,7 @@ import io.ktor.client.response.HttpResponse
 import io.ktor.client.response.readBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 class ContentCrawler(private val writer: ContentWriter,
@@ -37,14 +38,21 @@ class ContentCrawler(private val writer: ContentWriter,
 //        val ctx = newFixedThreadPoolContext(10, "source-worker")
         source.start()
         GlobalScope.launch(Dispatchers.IO) {
-            (1..10).map {
-                launch {
-                    while (true) {
-                        val raw = source.contentChannel().receive()
-                        processContent(id, raw)
-                    }
-                }
+            while (true) {
+                val raw = source.contentChannel().receive()
+                processContent(id, raw)
+
+//                async {
+//                }
             }
+//            (1..10).map {
+//                launch {
+//                    while (true) {
+//                        val raw = source.contentChannel().receive()
+//                        processContent(id, raw)
+//                    }
+//                }
+//            }
         }
     }
 
@@ -65,7 +73,11 @@ class ContentCrawler(private val writer: ContentWriter,
                 raw.payload.type,
                 url,
                 hash,
-                Meta(raw.publishTime, raw.likesCount, raw.dislikesCount, raw.commentsCount)
+                raw.publishTime,
+                raw.likesCount,
+                raw.dislikesCount,
+                raw.commentsCount,
+                0
             )
         )
 

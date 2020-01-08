@@ -4,5 +4,6 @@ data class Meta(
     val publishTime: Int,
     val likesCount: Int,
     val dislikesCount: Int,
-    val commentsCount: Int
+    val commentsCount: Int,
+    val sourcesCount: Int
 )

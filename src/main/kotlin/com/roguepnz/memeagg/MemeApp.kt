@@ -5,40 +5,54 @@ import com.roguepnz.memeagg.cluster.NodeService
 import com.roguepnz.memeagg.http.KtorController
 import com.roguepnz.memeagg.crawler.ContentCrawler
 import com.roguepnz.memeagg.crawler.ContentWriter
+import com.roguepnz.memeagg.db.Dao
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
 import io.ktor.jackson.jackson
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 
 fun main() {
-    System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "./config/logback.xml")
+    runBlocking {
+        System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "./config/logback.xml")
 
-    val server = embeddedServer(Netty, 8080) {
-        install(ContentNegotiation) {
-            jackson {
-
+        val jobs = AppContainer.getAll(Dao::class).map {
+            GlobalScope.async {
+                it.init()
             }
-
-
         }
-        AppContainer.getAll(KtorController::class)
-            .forEach {
-                routing(it.routing())
+
+        jobs.forEach { it.join() }
+
+        val server = embeddedServer(Netty, 8080) {
+            install(ContentNegotiation) {
+                jackson {
+
+                }
+
+
             }
-    }
+            AppContainer.getAll(KtorController::class)
+                .forEach {
+                    routing(it.routing())
+                }
+        }
 
 //    val crawler = AppContainer.get(ContentCrawler::class)
 //    crawler.start()
 
-    val writer = AppContainer.get(ContentWriter::class)
-    writer.start()
+        val writer = AppContainer.get(ContentWriter::class)
+        writer.start()
 
-    val nodeService = AppContainer.get(NodeService::class)
-    nodeService.start()
+        val nodeService = AppContainer.get(NodeService::class)
+        nodeService.start()
 
 
 
-    server.start(true)
+        server.start(true)
+    }
 }
