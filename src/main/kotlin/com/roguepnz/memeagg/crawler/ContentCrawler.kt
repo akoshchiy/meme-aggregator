@@ -38,17 +38,22 @@ class ContentCrawler(private val writer: ContentWriter,
 //        val ctx = newFixedThreadPoolContext(10, "source-worker")
         source.start()
         GlobalScope.launch(Dispatchers.IO) {
-            while (true) {
-                val raw = source.contentChannel().receive()
-                processContent(id, raw)
-
+            for (raw in source.contentChannel()) {
+                launch {
+                    processContent(id, raw)
+                }
+            }
+//            val scope = this
+//            while (true) {
+//                val raw = source.contentChannel().receive()
+//                processContent(id, raw)
+//
 //                async {
 //                }
-            }
-//            (1..10).map {
-//                launch {
-//                    while (true) {
-//                        val raw = source.contentChannel().receive()
+//            }
+//            (1..10).forEach { _ ->
+//                GlobalScope.launch {
+//                    for (raw in source.contentChannel()) {
 //                        processContent(id, raw)
 //                    }
 //                }

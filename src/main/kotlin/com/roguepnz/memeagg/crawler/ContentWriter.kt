@@ -6,6 +6,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
+import java.lang.Exception
 
 class ContentWriter(private val config: CrawlerConfig, private val dao: ContentDao) {
 
@@ -28,7 +29,12 @@ class ContentWriter(private val config: CrawlerConfig, private val dao: ContentD
             val remainingTime = deadline - System.currentTimeMillis()
 
             if (batch.isNotEmpty() && remainingTime <= 0 || batch.size >= config.writerQueueSize) {
-                dao.save(batch)
+                // TODO
+                try {
+                    dao.save(batch)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
                 batch.clear()
                 continue
             }

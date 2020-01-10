@@ -42,7 +42,7 @@ class NGagTagContentSource(private val config: NGagTagConfig,
                 break
             }
             res.content.forEach {
-                contentChannel.offer(it)
+                contentChannel.send(it)
             }
             state.cursor = res.cursor
             stateProvider.save(state)

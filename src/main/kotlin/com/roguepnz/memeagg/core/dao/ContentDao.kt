@@ -36,18 +36,6 @@ class ContentDao(db: CoroutineDatabase) : Dao {
             UpdateOneModel<Content>(
                 Filters.eq("hash", it.hash),
                 Updates.combine(
-//                    Updates.combine(
-////                        Updates.set("meta",  Document()
-////                                .append("publishTime", it.meta.publishTime)
-////                                    .append("likesCount", it.meta.likesCount)
-////                                    .append("dislikesCount", it.meta.dislikesCount)
-////                                    .append("commentsCount", it.meta.commentsCount)
-//                                    .append("sourcesCount", 0)
-//
-//                        ),
-//                        Updates.inc("meta.sourcesCount", 1)
-//                    ),
-//                    Updates.inc("meta.sourcesCount", 1),
                     Updates.inc("sourcesCount", 1),
                     Updates.setOnInsert(
                         Document()
@@ -67,6 +55,12 @@ class ContentDao(db: CoroutineDatabase) : Dao {
 
         collection.bulkWrite(updates, options)
     }
+
+
+//    suspend fun save(batch: List<Content>) {
+//        collection.insertMany(batch, InsertManyOptions().ordered(false))
+//    }
+
 
     suspend fun getPage(): List<Content> {
         return collection.find()

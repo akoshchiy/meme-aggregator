@@ -40,7 +40,7 @@ class NGagGroupContentSource(private val config: NGagGroupConfig,
                 break
             }
             res.content.forEach {
-                contentChannel.offer(it)
+                contentChannel.send(it)
             }
             state.cursor = res.cursor
             stateProvider.save(state)
