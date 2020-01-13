@@ -15,17 +15,14 @@ class ContentDao(db: CoroutineDatabase) : Dao {
     override suspend fun init() {
         collection.createIndexes(
             listOf(
-                IndexModel(Indexes.descending("publishTime")),
-                IndexModel(Indexes.ascending("hash"), IndexOptions().unique(true))
+                IndexModel(Indexes.descending("publishTime"))
+//                IndexModel(Indexes.ascending("hash"), IndexOptions().unique(true))
             )
         )
     }
 
     suspend fun getById(id: String): Content? {
         return collection.findOneById(id)
-    }
-
-    suspend fun updateMeta(batch: List<Meta>) {
     }
 
     suspend fun save(batch: List<Content>) {
@@ -39,7 +36,6 @@ class ContentDao(db: CoroutineDatabase) : Dao {
                     Updates.inc("sourcesCount", 1),
                     Updates.setOnInsert(
                         Document()
-                            .append("_id", it.id)
                             .append("type", it.contentType)
                             .append("hash", it.hash)
                             .append("url", it.url)

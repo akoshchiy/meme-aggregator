@@ -1,6 +1,7 @@
 package com.roguepnz.memeagg.source.ngag.group
 
 import com.roguepnz.memeagg.source.ContentSource
+import com.roguepnz.memeagg.source.cursor.*
 import com.roguepnz.memeagg.source.model.RawContent
 import com.roguepnz.memeagg.source.model.RawMeta
 import com.roguepnz.memeagg.source.ngag.NGagClient
@@ -14,35 +15,31 @@ import kotlinx.coroutines.launch
 
 class NGagGroupContentSource(private val config: NGagGroupConfig,
                              private val client: NGagClient,
-                             private val stateProvider: StateProvider<NGagGroupState>) : ContentSource {
+                             stateProvider: StateProvider<CursorState>) : ContentSource {
 
-    private val contentChannel: Channel<RawContent> = Channel(config.bufferSize)
-    private val metaUpdateChannel: Channel<RawMeta> = Channel(config.bufferSize)
+    private val cursorContentSource = CursorContentSource(
+        prepareProvider(),
+        stateProvider,
+        config.bufferSize,
+        300
+    )
 
-    override suspend fun start() {
-        startCrawling()
-    }
-
-    override fun contentChannel(): ReceiveChannel<RawContent> {
-        return contentChannel
-    }
-
-    override fun metaChannel(): ReceiveChannel<RawMeta> {
-        return metaUpdateChannel
-    }
-
-    private suspend fun startCrawling() {
-        val state = stateProvider.getOrDefault(NGagGroupState::class) { NGagGroupState() }
-        while (true) {
-            val res = client.getByGroup(config.group, state.cursor)
-            if (res.cursor == null) {
-                break
-            }
-            res.content.forEach {
-                contentChannel.send(it)
-            }
-            state.cursor = res.cursor
-            stateProvider.save(state)
+    private fun prepareProvider(): CursorProvider {
+        return {
+            val res = client.getByGroup(config.group, it?.cursor ?: "")
+            CursorContent(
+                Cursor(res.cursor ?: "", res.cursor != null),
+                res.content
+            )
         }
+    }
+
+
+    override fun listen(scope: CoroutineScope): ReceiveChannel<RawContent> {
+        return cursorContentSource.listen(scope)
+    }
+
+    override fun stop() {
+        cursorContentSource.stop()
     }
 }

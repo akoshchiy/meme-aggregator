@@ -2,6 +2,7 @@ package com.roguepnz.memeagg.source
 
 import com.roguepnz.memeagg.source.config.ContentSourceConfig
 import com.roguepnz.memeagg.source.config.SourceType
+import com.roguepnz.memeagg.source.cursor.CursorState
 import com.roguepnz.memeagg.source.ngag.tag.NGagTagContentSource
 import com.roguepnz.memeagg.source.ngag.tag.NGagTagConfig
 import com.roguepnz.memeagg.source.ngag.NGagClient
@@ -32,16 +33,12 @@ class ContentSourceBuilder(config: Config, private val httpClient: HttpClient, p
     }
 
     private fun build(config: ContentSourceConfig): ContentSource {
-
-//        val broadcast = GlobalScope.broadcast<Any>()
-//        broadcast.openSubscription()
-
-//        val ch = BroadcastChannel<Any>(100)
         return when(config.type) {
             SourceType.NGAG_TAG -> NGagTagContentSource(NGagTagConfig(config.config),
-                NGagClient(httpClient), DbStateProvider(db, config.id))
+                NGagClient(httpClient), DbStateProvider(db, config.id, CursorState::class))
+
             SourceType.NGAG_GROUP -> NGagGroupContentSource(NGagGroupConfig(config.config),
-                NGagClient(httpClient), DbStateProvider(db, config.id))
+                NGagClient(httpClient), DbStateProvider(db, config.id, CursorState::class))
 
 
             else -> throw IllegalArgumentException("unsupported source type: " + config.type)

@@ -35,32 +35,16 @@ class ContentCrawler(private val writer: ContentWriter,
 //    }
 
     fun crawl(id: String, source: ContentSource) {
-//        val ctx = newFixedThreadPoolContext(10, "source-worker")
-        source.start()
         GlobalScope.launch(Dispatchers.IO) {
-            (0..10).forEach {
+            val channel = source.listen(this)
+            for (raw in channel) {
                 launch {
-                    for (raw in source.contentChannel()) {
-                        processContent(id, raw)
-                    }
+                    processContent(id, raw)
                 }
             }
-//            for (raw in source.contentChannel()) {
+//            (0..10).forEach {
 //                launch {
-//                    processContent(id, raw)
-//                }
-//            }
-//            val scope = this
-//            while (true) {
-//                val raw = source.contentChannel().receive()
-//                processContent(id, raw)
-//
-//                async {
-//                }
-//            }
-//            (1..10).forEach { _ ->
-//                GlobalScope.launch {
-//                    for (raw in source.contentChannel()) {
+//                    for (raw in channel) {
 //                        processContent(id, raw)
 //                    }
 //                }
@@ -77,12 +61,12 @@ class ContentCrawler(private val writer: ContentWriter,
 
         val url = uploader.upload(key, bytes, contentType!!)
 
-        // TODO add hash check
-
         writer.add(
             Content(
-                key,
-                raw.payload.type,
+                null,
+                sourceId,
+                raw.id,
+                raw.payload.type.code,
                 url,
                 hash,
                 raw.publishTime,
