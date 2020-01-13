@@ -41,7 +41,7 @@ class ContentCrawler(private val writer: ContentWriter,
         for (item in batch) {
             val key = "${item.sourceId}_${item.raw.id}"
             if (set.contains(key)) {
-               handleUpdate(item.raw)
+               handleUpdate(key, item.raw)
             } else {
                 scope.launch {
                     handleNew(key, item.raw)
@@ -50,14 +50,14 @@ class ContentCrawler(private val writer: ContentWriter,
         }
     }
 
-    private suspend fun handleUpdate(raw: RawContent) {
-        writer.update(
+    private suspend fun handleUpdate(key: String, raw: RawContent) {
+        writer.updateMeta(
             Meta(
+                key,
                 raw.publishTime,
                 raw.likesCount,
                 raw.dislikesCount,
-                raw.commentsCount,
-                0
+                raw.commentsCount
             )
         )
         logger.info("UP: ${JSON.stringify(raw)}")
@@ -66,18 +66,19 @@ class ContentCrawler(private val writer: ContentWriter,
     private suspend fun handleNew(key: String, raw: RawContent) {
         val uploadRes = uploader.upload(key, raw.payload.url)
 
-        writer.insert(
+        writer.save(
             Content(
                 null,
-                key,
                 raw.payload.type.code,
                 uploadRes.url,
                 uploadRes.hash,
-                raw.publishTime,
-                raw.likesCount,
-                raw.dislikesCount,
-                raw.commentsCount,
-                0
+                Meta(
+                    key,
+                    raw.publishTime,
+                    raw.likesCount,
+                    raw.dislikesCount,
+                    raw.commentsCount
+                )
             )
         )
 

@@ -28,7 +28,7 @@ class CursorContentSource(private val cursorProvider: CursorProvider,
         val channel = Channel<RawContent>(bufSize)
 
         scope.launch { startCrawl(channel) }
-//        scope.launch { startUpdate(channel) }
+        scope.launch { startUpdate(channel) }
 
         return channel
     }
@@ -65,8 +65,8 @@ class CursorContentSource(private val cursorProvider: CursorProvider,
     private suspend fun startUpdate(channel: Channel<RawContent>) {
         while (!stop) {
             // TODO cancel long running job
-            delay(Duration.ofMinutes(1))
             checkUpdate(channel)
+            delay(Duration.ofSeconds(10))
         }
     }
 

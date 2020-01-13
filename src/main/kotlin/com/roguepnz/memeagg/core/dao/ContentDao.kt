@@ -18,7 +18,7 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
             listOf(
                 IndexModel(Indexes.descending("publishTime")),
                 IndexModel(Indexes.ascending("hash"), IndexOptions().unique(true)),
-                IndexModel(Indexes.ascending("sourceKey"), IndexOptions().unique(true))
+                IndexModel(Indexes.ascending("meta.sourceKey"), IndexOptions().unique(true))
             )
         )
     }
@@ -27,7 +27,7 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
         return collection.findOneById(id)
     }
 
-    suspend fun save(batch: List<Content>) {
+    suspend fun insert(batch: List<Content>) {
         val options = BulkWriteOptions()
             .ordered(false)
 
@@ -35,17 +35,19 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
             UpdateOneModel<Content>(
                 Filters.eq("hash", it.hash),
                 Updates.combine(
-                    Updates.inc("sourcesCount", 1),
                     Updates.setOnInsert(
                         Document()
-                            .append("sourceKey", it.sourceKey)
                             .append("type", it.contentType)
                             .append("hash", it.hash)
                             .append("url", it.url)
-                            .append("publishTime", it.publishTime)
-                            .append("likesCount", it.likesCount)
-                            .append("dislikesCount", it.dislikesCount)
-                            .append("commentsCount", it.commentsCount)
+                            .append("meta", Document()
+                                .append("sourceKey", it.meta.sourceKey)
+                                .append("publishTime", it.meta.publishTime)
+                                .append("likesCount", it.meta.likesCount)
+                                .append("dislikesCount", it.meta.dislikesCount)
+                                .append("commentsCount", it.meta.commentsCount)
+                            )
+
                     )
                 ),
                 UpdateOptions().upsert(true)
@@ -55,13 +57,29 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
         collection.bulkWrite(updates, options)
     }
 
+    suspend fun updateMeta(batch: List<Meta>) {
+        val updates = batch.map {
+            UpdateOneModel<Content>(
+                Filters.eq("meta.sourceKey", it.sourceKey),
+                Updates.combine(
+                    Updates.set("meta.publishTime", it.publishTime),
+                    Updates.set("likesCount", it.likesCount),
+                    Updates.set("dislikesCount", it.dislikesCount),
+                    Updates.set("commentsCount", it.commentsCount)
+                )
+            )
+        }
+
+        collection.bulkWrite(updates, BulkWriteOptions().ordered(false))
+    }
+
     suspend fun contains(sourceKeys: List<String>): Set<String> {
         return docCollection
-            .find(Filters.`in`("sourceKey", sourceKeys))
-            .projection(Projections.include("_id", "sourceKey"))
+            .find(Filters.`in`("meta.sourceKey", sourceKeys))
+            .projection(Projections.include("_id", "meta.sourceKey"))
             .toList()
             .asSequence()
-            .map { it.getString("sourceKey") }
+            .map { it.get("meta", Document::class.java).getString("sourceKey") }
             .toSet()
     }
 
