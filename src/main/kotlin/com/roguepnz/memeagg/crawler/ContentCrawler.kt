@@ -1,74 +1,78 @@
 package com.roguepnz.memeagg.crawler
 
+import com.roguepnz.memeagg.core.dao.ContentDao
 import com.roguepnz.memeagg.core.model.Content
 import com.roguepnz.memeagg.core.model.Meta
 import com.roguepnz.memeagg.crawler.payload.PayloadUploader
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.RawContent
-import com.roguepnz.memeagg.util.Hashes
 import com.roguepnz.memeagg.util.JSON
 import com.roguepnz.memeagg.util.loggerFor
-import io.ktor.client.HttpClient
-import io.ktor.client.request.get
-import io.ktor.client.response.HttpResponse
-import io.ktor.client.response.readBytes
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class ContentCrawler(private val writer: ContentWriter,
-                     private val httpClient: HttpClient,
+                     private val contentDao: ContentDao,
                      private val uploader: PayloadUploader) {
 
     private val logger = loggerFor<ContentCrawler>()
 
-//    fun start() {
-//        // TODO distributed
-//        // TODO async payload downloader
-//        // TODO content duplicate detect
-//        writer.start()
-//
-////        builder.buildSources(builder.sources).forEach {
-////            listenSource(it)
-////        }
-//    }
+    private class BatchItem(val sourceId: String, val raw: RawContent)
 
-    fun crawl(id: String, source: ContentSource) {
-        GlobalScope.launch(Dispatchers.IO) {
+    private val batchWorker = BatchWorker(1000, 1, this::handleBatch)
+
+    fun start(scope: CoroutineScope) {
+        batchWorker.start(scope)
+    }
+
+    fun crawl(scope: CoroutineScope, sourceId: String, source: ContentSource) {
+        scope.launch {
             val channel = source.listen(this)
             for (raw in channel) {
-                launch {
-                    processContent(id, raw)
-                }
+                batchWorker.add(BatchItem(sourceId, raw))
             }
-//            (0..10).forEach {
-//                launch {
-//                    for (raw in channel) {
-//                        processContent(id, raw)
-//                    }
-//                }
-//            }
         }
     }
 
-    private suspend fun processContent(sourceId: String, raw: RawContent) {
-        val resp = httpClient.get<HttpResponse>(raw.payload.url)
-        val contentType = resp.headers["content-type"]
-        val bytes = resp.readBytes()
-        val hash = Hashes.md5(bytes)
-        val key = "${sourceId}_${raw.id}"
+    private suspend fun handleBatch(scope: CoroutineScope, batch: List<BatchItem>) {
+        val keys = batch.map {"${it.sourceId}_${it.raw.id}"}
 
-        val url = uploader.upload(key, bytes, contentType!!)
+        val set = contentDao.contains(keys)
 
-        writer.add(
+        for (item in batch) {
+            val key = "${item.sourceId}_${item.raw.id}"
+            if (set.contains(key)) {
+               handleUpdate(item.raw)
+            } else {
+                scope.launch {
+                    handleNew(key, item.raw)
+                }
+            }
+        }
+    }
+
+    private suspend fun handleUpdate(raw: RawContent) {
+        writer.update(
+            Meta(
+                raw.publishTime,
+                raw.likesCount,
+                raw.dislikesCount,
+                raw.commentsCount,
+                0
+            )
+        )
+        logger.info("UP: ${JSON.stringify(raw)}")
+    }
+
+    private suspend fun handleNew(key: String, raw: RawContent) {
+        val uploadRes = uploader.upload(key, raw.payload.url)
+
+        writer.insert(
             Content(
                 null,
-                sourceId,
-                raw.id,
+                key,
                 raw.payload.type.code,
-                url,
-                hash,
+                uploadRes.url,
+                uploadRes.hash,
                 raw.publishTime,
                 raw.likesCount,
                 raw.dislikesCount,
@@ -77,6 +81,6 @@ class ContentCrawler(private val writer: ContentWriter,
             )
         )
 
-        logger.info(JSON.stringify(raw))
+        logger.info("CRAWL: ${JSON.stringify(raw)}")
     }
 }

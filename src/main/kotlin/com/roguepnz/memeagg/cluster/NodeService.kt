@@ -4,7 +4,7 @@ import com.roguepnz.memeagg.crawler.ContentCrawler
 import com.roguepnz.memeagg.source.ContentSourceBuilder
 import com.roguepnz.memeagg.util.Strings
 import com.roguepnz.memeagg.util.loggerFor
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
 import java.time.Duration
@@ -18,30 +18,27 @@ class NodeService(private val config: NodeConfig,
 
     val nodeId: String = Strings.randomAlphaNumeric(6)
 
-    fun start() {
+    fun start(scope: CoroutineScope) {
         logger.info("starting crawling node: $nodeId")
-        GlobalScope.launch {
+        scope.launch {
             publishSources()
             launch {
                 updateGrabbed()
             }
-            grabSources()
+            grabSources(scope)
         }
     }
 
     private suspend fun publishSources() {
         dao.insert(builder.sources)
-//        builder.sources.forEach {
-//            dao.insert(it)
-//        }
     }
 
-    private suspend fun grabSources() {
+    private suspend fun grabSources(scope: CoroutineScope) {
         var workers = config.workersCount
         while (workers > 0) {
             val sourceId = dao.tryGrab(nodeId)
             if (sourceId != null) {
-                startCrawl(sourceId)
+                startCrawl(scope, sourceId)
                 workers -= 1
             } else {
                 delay(Duration.ofSeconds(config.grabDelaySec))
@@ -49,10 +46,10 @@ class NodeService(private val config: NodeConfig,
         }
     }
 
-    private fun startCrawl(id: String) {
-        val source = builder.build(id)
-        logger.info("grabbed source: $id, node: $nodeId")
-        crawler.crawl(id, source)
+    private fun startCrawl(scope: CoroutineScope, sourceId: String) {
+        val source = builder.build(sourceId)
+        logger.info("grabbed source: $sourceId, node: $nodeId")
+        crawler.crawl(scope, sourceId, source)
     }
 
     private suspend fun updateGrabbed() {

@@ -1,6 +1,5 @@
 package com.roguepnz.memeagg.crawler.payload.s3
 
-import com.roguepnz.memeagg.crawler.payload.PayloadUploader
 import kotlinx.coroutines.future.await
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
@@ -11,7 +10,7 @@ import software.amazon.awssdk.services.s3.S3Configuration
 import software.amazon.awssdk.services.s3.model.*
 import java.net.URI
 
-class S3PayloadUploader(private val config: S3Config) : PayloadUploader {
+class S3Client(private val config: S3Config) {
 
     private val client = buildClient()
 
@@ -40,7 +39,7 @@ class S3PayloadUploader(private val config: S3Config) : PayloadUploader {
         client.createBucket(req).await()
     }
 
-    override suspend fun upload(key: String, data: ByteArray, contentType: String): String {
+    suspend fun upload(key: String, data: ByteArray, contentType: String): String {
 //        createBucket(config.bucket)
 
         val req = PutObjectRequest.builder()

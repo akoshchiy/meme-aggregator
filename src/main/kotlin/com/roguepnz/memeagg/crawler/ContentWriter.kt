@@ -2,54 +2,28 @@ package com.roguepnz.memeagg.crawler
 
 import com.roguepnz.memeagg.core.dao.ContentDao
 import com.roguepnz.memeagg.core.model.Content
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.selects.select
-import java.lang.Exception
+import com.roguepnz.memeagg.core.model.Meta
+import kotlinx.coroutines.CoroutineScope
 
-class ContentWriter(private val config: CrawlerConfig, private val dao: ContentDao) {
+class ContentWriter(config: CrawlerConfig, dao: ContentDao) {
 
-    private val channel: Channel<Content> = Channel()
-    private val batch: MutableList<Content> = ArrayList()
+    private val worker = BatchWorker(config.writerQueueSize, config.writerWaitTimeSec, prepareWork(dao))
 
-    fun start() {
-        GlobalScope.launch {
-            loop()
+
+    private fun prepareWork(dao: ContentDao): suspend (CoroutineScope, List<Content>) -> Unit {
+        return  { _, c ->
+            dao.save(c)
         }
     }
 
-    suspend fun add(content: Content) {
-        channel.send(content)
+    fun start(scope: CoroutineScope) {
+        worker.start(scope)
     }
 
-    private suspend fun loop() {
-        var deadline = 0L
-        while (true) {
-            val remainingTime = deadline - System.currentTimeMillis()
+    suspend fun insert(content: Content) {
+        worker.add(content)
+    }
 
-            if (batch.isNotEmpty() && remainingTime <= 0 || batch.size >= config.writerQueueSize) {
-                // TODO
-                try {
-                    dao.save(batch)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                batch.clear()
-                continue
-            }
-
-            select<Unit> {
-                channel.onReceive {
-                    batch.add(it)
-                    if (batch.size == 1) {
-                        deadline = System.currentTimeMillis() + config.writerWaitTimeSec * 1000L
-                    }
-                }
-                if (batch.isNotEmpty()) {
-                    onTimeout(remainingTime){}
-                }
-            }
-        }
+    suspend fun update(meta: Meta) {
     }
 }

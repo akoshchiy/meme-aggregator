@@ -5,6 +5,7 @@ import com.roguepnz.memeagg.cluster.NodeService
 import com.roguepnz.memeagg.http.KtorController
 import com.roguepnz.memeagg.crawler.ContentCrawler
 import com.roguepnz.memeagg.crawler.ContentWriter
+import com.roguepnz.memeagg.crawler.payload.PayloadUploader
 import com.roguepnz.memeagg.db.Dao
 import io.ktor.application.install
 import io.ktor.features.ContentNegotiation
@@ -12,9 +13,8 @@ import io.ktor.jackson.jackson
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 fun main() {
     runBlocking {
@@ -42,16 +42,19 @@ fun main() {
                 }
         }
 
-//    val crawler = AppContainer.get(ContentCrawler::class)
-//    crawler.start()
+        val scope = CoroutineScope(Dispatchers.IO)
 
         val writer = AppContainer.get(ContentWriter::class)
-        writer.start()
+        writer.start(scope)
+
+        val uploader = AppContainer.get(PayloadUploader::class)
+        uploader.start(scope)
+
+        val crawler = AppContainer.get(ContentCrawler::class)
+        crawler.start(scope)
 
         val nodeService = AppContainer.get(NodeService::class)
-        nodeService.start()
-
-
+        nodeService.start(scope)
 
         server.start(true)
     }

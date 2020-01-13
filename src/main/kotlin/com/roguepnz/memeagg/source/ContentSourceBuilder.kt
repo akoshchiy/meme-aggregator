@@ -40,7 +40,6 @@ class ContentSourceBuilder(config: Config, private val httpClient: HttpClient, p
             SourceType.NGAG_GROUP -> NGagGroupContentSource(NGagGroupConfig(config.config),
                 NGagClient(httpClient), DbStateProvider(db, config.id, CursorState::class))
 
-
             else -> throw IllegalArgumentException("unsupported source type: " + config.type)
         }
     }

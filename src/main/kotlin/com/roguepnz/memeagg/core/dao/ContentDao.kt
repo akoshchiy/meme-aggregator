@@ -8,15 +8,17 @@ import com.roguepnz.memeagg.db.Dao
 import org.bson.Document
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
-class ContentDao(db: CoroutineDatabase) : Dao {
+class ContentDao(private val db: CoroutineDatabase) : Dao {
 
     private val collection = db.getCollection<Content>("content")
+    private val docCollection = db.getCollection<Document>("content")
 
     override suspend fun init() {
         collection.createIndexes(
             listOf(
-                IndexModel(Indexes.descending("publishTime"))
-//                IndexModel(Indexes.ascending("hash"), IndexOptions().unique(true))
+                IndexModel(Indexes.descending("publishTime")),
+                IndexModel(Indexes.ascending("hash"), IndexOptions().unique(true)),
+                IndexModel(Indexes.ascending("sourceKey"), IndexOptions().unique(true))
             )
         )
     }
@@ -36,6 +38,7 @@ class ContentDao(db: CoroutineDatabase) : Dao {
                     Updates.inc("sourcesCount", 1),
                     Updates.setOnInsert(
                         Document()
+                            .append("sourceKey", it.sourceKey)
                             .append("type", it.contentType)
                             .append("hash", it.hash)
                             .append("url", it.url)
@@ -52,11 +55,15 @@ class ContentDao(db: CoroutineDatabase) : Dao {
         collection.bulkWrite(updates, options)
     }
 
-
-//    suspend fun save(batch: List<Content>) {
-//        collection.insertMany(batch, InsertManyOptions().ordered(false))
-//    }
-
+    suspend fun contains(sourceKeys: List<String>): Set<String> {
+        return docCollection
+            .find(Filters.`in`("sourceKey", sourceKeys))
+            .projection(Projections.include("_id", "sourceKey"))
+            .toList()
+            .asSequence()
+            .map { it.getString("sourceKey") }
+            .toSet()
+    }
 
     suspend fun getPage(): List<Content> {
         return collection.find()
