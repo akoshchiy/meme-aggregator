@@ -2,7 +2,7 @@ package com.roguepnz.memeagg.source.reddit
 
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.RawContent
-import com.roguepnz.memeagg.source.model.RawMetadata
+import com.roguepnz.memeagg.source.model.RawMeta
 import kotlinx.coroutines.channels.ReceiveChannel
 
 class RedditContentSource : ContentSource {
@@ -15,7 +15,7 @@ class RedditContentSource : ContentSource {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun metaUpdateChannel(): ReceiveChannel<RawMetadata> {
+    override fun metaChannel(): ReceiveChannel<RawMeta> {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

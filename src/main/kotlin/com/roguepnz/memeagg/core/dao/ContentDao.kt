@@ -40,7 +40,7 @@ class ContentDao(db: CoroutineDatabase) : Dao {
                     Updates.setOnInsert(
                         Document()
                             .append("_id", it.id)
-                            .append("type", it.type)
+                            .append("type", it.contentType)
                             .append("hash", it.hash)
                             .append("url", it.url)
                             .append("publishTime", it.publishTime)

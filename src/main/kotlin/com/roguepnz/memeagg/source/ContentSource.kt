@@ -1,11 +1,12 @@
 package com.roguepnz.memeagg.source
 
 import com.roguepnz.memeagg.source.model.RawContent
-import com.roguepnz.memeagg.source.model.RawMetadata
+import com.roguepnz.memeagg.source.model.RawMeta
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
 
 interface ContentSource {
-    fun start()
+    fun start(scope: CoroutineScope)
     fun contentChannel(): ReceiveChannel<RawContent>
-    fun metaUpdateChannel(): ReceiveChannel<RawMetadata>
+    fun metaChannel(): ReceiveChannel<RawMeta>
 }
