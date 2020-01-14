@@ -34,12 +34,7 @@ class NGagGroupContentSource(private val config: NGagGroupConfig,
         }
     }
 
-
-    override fun listen(scope: CoroutineScope): ReceiveChannel<RawContent> {
-        return cursorContentSource.listen(scope)
-    }
-
-    override fun stop() {
-        cursorContentSource.stop()
+    override fun listen(): ReceiveChannel<RawContent> {
+        return cursorContentSource.listen()
     }
 }

@@ -42,8 +42,8 @@ fun main() {
                 }
         }
 
-//        val nodeService = AppContainer.get(NodeService::class)
-//        nodeService.start()
+        val nodeService = AppContainer.get(NodeService::class)
+        nodeService.start()
 
         server.start(true)
     }

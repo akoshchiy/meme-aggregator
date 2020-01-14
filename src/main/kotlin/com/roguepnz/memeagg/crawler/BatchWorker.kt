@@ -12,10 +12,9 @@ class BatchWorker<T>(private val queueSize: Int,
                      private val workFun: suspend (List<T>) -> Unit) {
 
     private val logger = loggerFor<BatchWorker<T>>()
-
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val channel: Channel<T> = Channel()
-    private val batch: MutableList<T> = ArrayList()
+    private val channel = Channel<T>()
+    private val batch = ArrayList<T>()
 
     init {
         scope.launch {

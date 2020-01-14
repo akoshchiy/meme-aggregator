@@ -1,7 +1,10 @@
 package com.roguepnz.memeagg.source.reddit
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.roguepnz.memeagg.core.model.ContentType
 import com.roguepnz.memeagg.crawler.CoroutineWorkerPool
+import com.roguepnz.memeagg.source.model.Payload
+import com.roguepnz.memeagg.source.model.RawContent
 import com.roguepnz.memeagg.util.Times
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -9,6 +12,7 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.http.userAgent
+import java.lang.IllegalArgumentException
 import java.util.*
 import kotlin.math.abs
 
@@ -21,12 +25,40 @@ class RedditClient(private val config: RedditConfig, private val client: HttpCli
 
     private var token: Token? = null
 
-    suspend fun getPosts(subreddits: List<String>, after: String? = null): RedditListing {
+    suspend fun getContent(subreddits: List<String>, after: String?): RedditContentResult {
         return pool.submit {
             checkToken()
             val cursor = if (after != null) "after=${after}" else ""
             val url = "https://www.reddit.com/r/${subreddits.joinToString("+")}/new.json?$cursor"
-            client.get<RedditListing>(url)
+            extractContent(client.get(url))
+        }
+    }
+
+    private fun extractContent(listing: RedditListing): RedditContentResult {
+        val content = listing.data.children
+            .asSequence()
+            .filter { it.data.isVideo || it.data.isImage }
+            .map {
+                RawContent(
+                    it.data.name,
+                    it.data.title,
+                    extractPayload(it.data),
+                    it.data.createdUtc,
+                    it.data.ups,
+                    0,
+                    it.data.numComments
+                )
+            }
+            .toList()
+
+        return RedditContentResult(content, listing.data.after)
+    }
+
+    private fun extractPayload(data: RedditLinkData): Payload {
+        return when {
+            data.isVideo -> Payload(ContentType.VIDEO, data.media!!.redditVideo!!.fallbackUrl)
+            data.isImage -> Payload(ContentType.IMAGE, data.url)
+            else -> throw IllegalArgumentException("unsupported type")
         }
     }
 
@@ -86,6 +118,8 @@ class RedditClient(private val config: RedditConfig, private val client: HttpCli
     }
 }
 
+data class RedditContentResult(val data: List<RawContent>, val after: String?)
+
 data class AuthResponse(val message: String?,
                         val error: Boolean?,
                         @JsonProperty("expires_in") val expiresIn: Int?,
@@ -96,12 +130,25 @@ data class RedditLink(
     val data: RedditLinkData
 )
 
-data class RedditLinkData(val thumbnail: String)
+data class RedditLinkData(@JsonProperty("num_comments") val numComments: Int,
+                          val ups: Int,
+                          @JsonProperty("is_video") val isVideo: Boolean,
+                          @JsonProperty("created_utc") val createdUtc: Int,
+                          val media: RedditMedia?,
+                          val preview: Any?,
+                          val url: String,
+                          val name: String,
+                          val title: String) {
+    val isImage get() = preview != null
+}
+
+data class RedditMedia(@JsonProperty("reddit_video") val redditVideo: ReddiVideo?)
+
+data class ReddiVideo(@JsonProperty("fallback_url") val fallbackUrl: String)
 
 data class RedditListing(val data: RedditListingData)
 
-data class RedditListingData(
-    @JsonProperty("modhash") val modHash: String,
-    val dist: Int,
-    val children: List<RedditLink>
-)
+data class RedditListingData(@JsonProperty("modhash") val modHash: String,
+                             val dist: Int,
+                             val children: List<RedditLink>,
+                             val after: String?)

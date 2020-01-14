@@ -1,20 +1,29 @@
 package com.roguepnz.memeagg.source.reddit
 
 import com.roguepnz.memeagg.source.ContentSource
+import com.roguepnz.memeagg.source.cursor.*
 import com.roguepnz.memeagg.source.model.RawContent
-import com.roguepnz.memeagg.source.model.RawMeta
+import com.roguepnz.memeagg.source.state.StateProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
 
-class RedditContentSource : ContentSource {
+class RedditContentSource(private val config: RedditConfig,
+                          private val client: RedditClient,
+                          stateProvider: StateProvider<CursorState>) : ContentSource {
 
-    override fun listen(scope: CoroutineScope): ReceiveChannel<RawContent> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private val source = CursorContentSource(cursorProvider(), stateProvider,1000, 300)
+
+    private fun cursorProvider(): CursorProvider {
+        return {
+            val res = client.getContent(config.subreddits, it?.cursor)
+            CursorContent(
+                Cursor(res.after ?: "", res.after != null),
+                res.data
+            )
+        }
     }
 
-    override fun stop() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun listen(): ReceiveChannel<RawContent> {
+        return source.listen()
     }
-
-
 }

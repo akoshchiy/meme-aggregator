@@ -8,6 +8,9 @@ import com.roguepnz.memeagg.source.ngag.tag.NGagTagConfig
 import com.roguepnz.memeagg.source.ngag.NGagClient
 import com.roguepnz.memeagg.source.ngag.group.NGagGroupConfig
 import com.roguepnz.memeagg.source.ngag.group.NGagGroupContentSource
+import com.roguepnz.memeagg.source.reddit.RedditClient
+import com.roguepnz.memeagg.source.reddit.RedditConfig
+import com.roguepnz.memeagg.source.reddit.RedditContentSource
 import com.roguepnz.memeagg.source.state.DbStateProvider
 import com.typesafe.config.Config
 import io.ktor.client.HttpClient
@@ -34,11 +37,24 @@ class ContentSourceBuilder(config: Config, private val httpClient: HttpClient, p
 
     private fun build(config: ContentSourceConfig): ContentSource {
         return when(config.type) {
-            SourceType.NGAG_TAG -> NGagTagContentSource(NGagTagConfig(config.config),
-                NGagClient(httpClient), DbStateProvider(db, config.id, CursorState::class))
-
-            SourceType.NGAG_GROUP -> NGagGroupContentSource(NGagGroupConfig(config.config),
-                NGagClient(httpClient), DbStateProvider(db, config.id, CursorState::class))
+            SourceType.NGAG_TAG -> {
+                NGagTagContentSource(
+                    NGagTagConfig(config.config),
+                    NGagClient(httpClient),
+                    DbStateProvider(db, config.id, CursorState::class)
+                )
+            }
+            SourceType.NGAG_GROUP -> {
+                NGagGroupContentSource(
+                    NGagGroupConfig(config.config),
+                    NGagClient(httpClient),
+                    DbStateProvider(db, config.id, CursorState::class)
+                )
+            }
+            SourceType.REDDIT -> {
+                val conf = RedditConfig(config.config)
+                RedditContentSource(conf, RedditClient(conf, httpClient), DbStateProvider(db, config.id, CursorState::class))
+            }
 
             else -> throw IllegalArgumentException("unsupported source type: " + config.type)
         }

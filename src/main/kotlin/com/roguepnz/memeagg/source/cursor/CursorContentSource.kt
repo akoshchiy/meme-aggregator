@@ -4,12 +4,15 @@ import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.RawContent
 import com.roguepnz.memeagg.source.model.RawMeta
 import com.roguepnz.memeagg.source.state.StateProvider
+import com.roguepnz.memeagg.util.loggerFor
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
 import java.time.Duration
+import kotlin.math.log
 
 
 data class CursorState(
@@ -21,25 +24,29 @@ class CursorContentSource(private val cursorProvider: CursorProvider,
                           private val stateProvider: StateProvider<CursorState>,
                           private val bufSize: Int,
                           private val checkCount: Int) : ContentSource {
-    @Volatile
-    private var stop: Boolean = false
 
-    override fun listen(scope: CoroutineScope): ReceiveChannel<RawContent> {
+    private val logger = loggerFor<CursorContentSource>()
+
+    private val scope = CoroutineScope(Dispatchers.IO)
+
+    override fun listen(): ReceiveChannel<RawContent> {
         val channel = Channel<RawContent>(bufSize)
 
-        scope.launch { startCrawl(channel) }
-        scope.launch { startUpdate(channel) }
+        scope.launch {
+            try {
+                startCrawl(channel)
+            } catch (e: Exception) {
+                logger.error("crawl iteration failed", e)
+            }
+        }
+//        scope.launch { startUpdate(channel) }
 
         return channel
     }
 
-    override fun stop() {
-        stop = true
-    }
-
     private suspend fun startCrawl(channel: Channel<RawContent>) {
         val state = stateProvider.get() ?: CursorState()
-        while (!stop) {
+        while (true) {
             val cursor = state.cursor
             val content = cursorProvider(cursor)
 
@@ -63,10 +70,9 @@ class CursorContentSource(private val cursorProvider: CursorProvider,
     }
 
     private suspend fun startUpdate(channel: Channel<RawContent>) {
-        while (!stop) {
-            // TODO cancel long running job
+        while (true) {
             checkUpdate(channel)
-            delay(Duration.ofSeconds(10))
+            delay(Duration.ofMinutes(1))
         }
     }
 

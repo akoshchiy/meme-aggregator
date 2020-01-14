@@ -5,7 +5,7 @@ import kotlinx.coroutines.channels.Channel
 
 private typealias Task = suspend () -> Unit
 
-class CoroutineWorkerPool(private val workers: Int) {
+class CoroutineWorkerPool(workers: Int) {
 
     private val queue = Channel<Task>(Channel.UNLIMITED)
     private val scope = CoroutineScope(Dispatchers.IO)

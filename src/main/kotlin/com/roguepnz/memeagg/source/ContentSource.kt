@@ -6,6 +6,5 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
 
 interface ContentSource {
-    fun listen(scope: CoroutineScope): ReceiveChannel<RawContent>
-    fun stop()
+    fun listen(): ReceiveChannel<RawContent>
 }

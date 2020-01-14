@@ -28,7 +28,7 @@ class ContentCrawler(private val writer: ContentWriter,
 
     fun crawl(sourceId: String, source: ContentSource) {
         scope.launch {
-            val channel = source.listen(this)
+            val channel = source.listen()
             for (raw in channel) {
                 batchWorker.add(BatchItem(sourceId, raw))
             }

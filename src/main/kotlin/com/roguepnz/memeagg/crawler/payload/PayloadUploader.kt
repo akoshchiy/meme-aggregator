@@ -15,7 +15,7 @@ class PayloadUploader(private val s3: S3Client, private val http: HttpClient) {
     private val pool = CoroutineWorkerPool(100)
 
     suspend fun upload(key: String, downloadUrl: String): UploadResult {
-        return pool.submitAsync { doUpload(key, downloadUrl) }.await()
+        return pool.submit { doUpload(key, downloadUrl) }
     }
 
     private suspend fun doUpload(key: String, downloadUrl: String): UploadResult {

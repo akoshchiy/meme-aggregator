@@ -14,7 +14,6 @@ object Config {
     val crawler: CrawlerConfig = CrawlerConfig(parse("./config/crawler.conf"))
     val node: NodeConfig = NodeConfig(parse("./config/node.conf"))
     val s3: S3Config = S3Config(parse("./config/s3.conf"))
-    val reddit: RedditConfig = RedditConfig(parse("./config/reddit.conf"))
 
     private fun parse(path: String): Config = ConfigFactory.parseFile(File(path)).resolve()
 }
