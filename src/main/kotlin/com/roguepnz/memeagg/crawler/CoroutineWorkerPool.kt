@@ -1,18 +1,16 @@
 package com.roguepnz.memeagg.crawler
 
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
 
 private typealias Task = suspend () -> Unit
 
 class CoroutineWorkerPool(private val workers: Int) {
 
     private val queue = Channel<Task>(Channel.UNLIMITED)
+    private val scope = CoroutineScope(Dispatchers.IO)
 
-    fun start(scope: CoroutineScope) {
+    init {
         repeat(workers) {
             scope.launch {
                 for (task in queue) {
@@ -29,5 +27,9 @@ class CoroutineWorkerPool(private val workers: Int) {
             deferred.complete(res)
         }
         return deferred
+    }
+
+    suspend fun <T> submit(action: suspend () -> T): T {
+        return submitAsync(action).await()
     }
 }

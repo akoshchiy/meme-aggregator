@@ -7,17 +7,12 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.response.HttpResponse
 import io.ktor.client.response.readBytes
-import kotlinx.coroutines.CoroutineScope
 
 class UploadResult(val key: String, val url: String, val hash: String)
 
 class PayloadUploader(private val s3: S3Client, private val http: HttpClient) {
 
     private val pool = CoroutineWorkerPool(100)
-
-    fun start(scope: CoroutineScope) {
-        pool.start(scope)
-    }
 
     suspend fun upload(key: String, downloadUrl: String): UploadResult {
         return pool.submitAsync { doUpload(key, downloadUrl) }.await()

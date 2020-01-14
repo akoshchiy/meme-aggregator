@@ -42,19 +42,8 @@ fun main() {
                 }
         }
 
-        val scope = CoroutineScope(Dispatchers.IO)
-
-        val writer = AppContainer.get(ContentWriter::class)
-        writer.start(scope)
-
-        val uploader = AppContainer.get(PayloadUploader::class)
-        uploader.start(scope)
-
-        val crawler = AppContainer.get(ContentCrawler::class)
-        crawler.start(scope)
-
-        val nodeService = AppContainer.get(NodeService::class)
-        nodeService.start(scope)
+//        val nodeService = AppContainer.get(NodeService::class)
+//        nodeService.start()
 
         server.start(true)
     }

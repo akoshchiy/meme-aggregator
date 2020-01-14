@@ -56,17 +56,16 @@ data class NGagMeta(val timestamp: Int, val status: String, val sid: String)
 
 data class NGagPostData(val posts: List<NGagPost>, val nextCursor: String?)
 
-data class NGagPost(
-    val id: String,
-    val url: String,
-    val type: String,
-    val title: String,
-    val upVoteCount: Int,
-    val downVoteCount: Int,
-    val creationTs: Int,
-    val commentsCount: Int,
-    val images: Map<String, NGagPostImage>
-) {
+data class NGagPost(val id: String,
+                    val url: String,
+                    val type: String,
+                    val title: String,
+                    val upVoteCount: Int,
+                    val downVoteCount: Int,
+                    val creationTs: Int,
+                    val commentsCount: Int,
+                    val images: Map<String, NGagPostImage>) {
+
     val isPhoto: Boolean get() = type == "Photo"
     val isAnimated: Boolean get() = type == "Animated"
     val isVideo: Boolean get() = type == "Video"

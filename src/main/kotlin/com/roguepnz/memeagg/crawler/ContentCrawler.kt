@@ -18,13 +18,15 @@ class ContentCrawler(private val writer: ContentWriter,
 
     private class BatchItem(val sourceId: String, val raw: RawContent)
 
+    private val scope = CoroutineScope(Dispatchers.IO)
+
     private val batchWorker = BatchWorker(1000, 1, this::handleBatch)
 
-    fun start(scope: CoroutineScope) {
-        batchWorker.start(scope)
-    }
+//    fun start(scope: CoroutineScope) {
+//        batchWorker.start(scope)
+//    }
 
-    fun crawl(scope: CoroutineScope, sourceId: String, source: ContentSource) {
+    fun crawl(sourceId: String, source: ContentSource) {
         scope.launch {
             val channel = source.listen(this)
             for (raw in channel) {
@@ -33,7 +35,7 @@ class ContentCrawler(private val writer: ContentWriter,
         }
     }
 
-    private suspend fun handleBatch(scope: CoroutineScope, batch: List<BatchItem>) {
+    private suspend fun handleBatch(batch: List<BatchItem>) {
         val keys = batch.map {"${it.sourceId}_${it.raw.id}"}
 
         val set = contentDao.contains(keys)

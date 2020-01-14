@@ -7,18 +7,14 @@ import kotlinx.coroutines.CoroutineScope
 
 class ContentWriter(config: CrawlerConfig, dao: ContentDao) {
 
-    private val contentWorker = BatchWorker<Content>(config.writerQueueSize, config.writerWaitTimeSec) { _, c ->
-        dao.insert(c)
-    }
+    private val contentWorker = BatchWorker<Content>(config.writerQueueSize, config.writerWaitTimeSec) { dao.insert(it) }
 
-    private val metaWorker = BatchWorker<Meta>(config.writerQueueSize, config.writerWaitTimeSec) { _, m ->
-        dao.updateMeta(m)
-    }
+    private val metaWorker = BatchWorker<Meta>(config.writerQueueSize, config.writerWaitTimeSec) { dao.updateMeta(it) }
 
-    fun start(scope: CoroutineScope) {
-        contentWorker.start(scope)
-        metaWorker.start(scope)
-    }
+//    fun start(scope: CoroutineScope) {
+//        contentWorker.start(scope)
+//        metaWorker.start(scope)
+//    }
 
     suspend fun save(content: Content) {
         contentWorker.add(content)
