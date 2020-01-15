@@ -21,7 +21,6 @@ class NodeService(private val config: NodeConfig,
 
     val nodeId: String = Strings.randomAlphaNumeric(6)
 
-
     fun start() {
         logger.info("starting crawling node: $nodeId")
         scope.launch {
@@ -38,7 +37,7 @@ class NodeService(private val config: NodeConfig,
     }
 
     private suspend fun grabSources() {
-        var workers = config.workersCount
+        var workers = config.maxSourcesCount
         while (workers > 0) {
             val sourceId = dao.tryGrab(nodeId)
             if (sourceId != null) {

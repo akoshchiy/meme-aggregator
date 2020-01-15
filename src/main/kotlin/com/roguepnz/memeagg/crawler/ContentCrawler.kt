@@ -10,9 +10,11 @@ import com.roguepnz.memeagg.util.JSON
 import com.roguepnz.memeagg.util.loggerFor
 import kotlinx.coroutines.*
 
-class ContentCrawler(private val writer: ContentWriter,
+class ContentCrawler(config: CrawlerConfig,
+                     private val writer: ContentWriter,
                      private val contentDao: ContentDao,
-                     private val uploader: PayloadUploader) {
+                     private val uploader: PayloadUploader,
+                     private val downloader: PayloadDownloader) {
 
     private val logger = loggerFor<ContentCrawler>()
 
@@ -20,11 +22,7 @@ class ContentCrawler(private val writer: ContentWriter,
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
-    private val batchWorker = BatchWorker(1000, 1, this::handleBatch)
-
-//    fun start(scope: CoroutineScope) {
-//        batchWorker.start(scope)
-//    }
+    private val batchWorker = BatchWorker(config.crawlerQueueSize, config.crawlerWaitTimeSec, this::handleBatch)
 
     fun crawl(sourceId: String, source: ContentSource) {
         scope.launch {
@@ -68,14 +66,15 @@ class ContentCrawler(private val writer: ContentWriter,
     }
 
     private suspend fun handleNew(key: String, raw: RawContent) {
-        val uploadRes = uploader.upload(key, raw.payload.url)
+        val downloadRes = downloader.download(raw.payload.url)
+        val url = uploader.upload(key, downloadRes.data, downloadRes.contentType)
 
         writer.save(
             Content(
                 null,
                 raw.payload.type.code,
-                uploadRes.url,
-                uploadRes.hash,
+                url,
+                downloadRes.hash,
                 Meta(
                     key,
                     raw.publishTime,

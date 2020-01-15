@@ -6,6 +6,7 @@ import com.roguepnz.memeagg.core.dao.ContentDao
 import com.roguepnz.memeagg.feed.api.FeedController
 import com.roguepnz.memeagg.crawler.ContentCrawler
 import com.roguepnz.memeagg.crawler.ContentWriter
+import com.roguepnz.memeagg.crawler.PayloadDownloader
 import com.roguepnz.memeagg.crawler.PayloadUploader
 import com.roguepnz.memeagg.s3.S3Client
 import com.roguepnz.memeagg.db.MongoDbBuilder
@@ -42,21 +43,29 @@ object AppContainer {
     init {
         put(HttpClientBuilder.build())
         put(S3Client(Config.s3))
-        put(
-            PayloadUploader(
-                get(S3Client::class),
-                get(HttpClient::class)
-            )
-        )
+
+        put(PayloadUploader(Config.crawler, get(S3Client::class)))
+        put(PayloadDownloader(Config.crawler, get(HttpClient::class)))
+
 
         put(MongoDbBuilder.build())
         put(ContentDao(get(CoroutineDatabase::class)))
 
         put(ContentSourceBuilder(Config.sources, get(HttpClient::class), get(CoroutineDatabase::class)))
         put(ContentWriter(Config.crawler, get(ContentDao::class)))
-        put(ContentCrawler(get(ContentWriter::class), get(ContentDao::class), get(PayloadUploader::class)))
+
+        put(
+            ContentCrawler(
+                Config.crawler,
+                get(ContentWriter::class),
+                get(ContentDao::class),
+                get(PayloadUploader::class),
+                get(PayloadDownloader::class)
+            )
+        )
 
         put(NodeSourceDao(Config.node, get(CoroutineDatabase::class)))
+
         put(
             NodeService(
                 Config.node,

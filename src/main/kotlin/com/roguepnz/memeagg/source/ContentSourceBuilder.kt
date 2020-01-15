@@ -24,11 +24,17 @@ class ContentSourceBuilder(config: Config, private val httpClient: HttpClient, p
     private val configs: Map<String, ContentSourceConfig> = readConfig(config)
 
     private fun readConfig(c: Config): Map<String, ContentSourceConfig> {
-        return c.getConfigList("sources")
+        val res = c.getConfigList("sources")
             .asSequence()
             .map { ContentSourceConfig(it) }
             .map { Pair(it.id, it) }
             .toMap()
+
+        val redditCount = res.values.count { it.type == SourceType.REDDIT }
+        if (redditCount > 1) {
+            throw Exception("only one simultaneous reddit source is supported")
+        }
+        return res
     }
 
     fun build(id: String): ContentSource {

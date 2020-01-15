@@ -15,7 +15,7 @@ class NGagTagContentSource(private val config: NGagTagConfig,
     private val cursorContentSource = CursorContentSource(
         cursorProvider(),
         stateProvider,
-        300
+        config.lastUpdateCount
     )
 
     private fun cursorProvider(): CursorProvider {
