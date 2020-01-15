@@ -21,8 +21,7 @@ private const val EXPIRE_DIFF = 60
 
 class RedditClient(private val config: RedditConfig, private val client: HttpClient) {
 
-    private val pool: CoroutineWorkerPool =
-        CoroutineWorkerPool(1)
+    private val pool: CoroutineWorkerPool = CoroutineWorkerPool(1)
 
     private var token: Token? = null
 
@@ -63,7 +62,7 @@ class RedditClient(private val config: RedditConfig, private val client: HttpCli
         }
     }
 
-     suspend fun auth(): Token {
+    suspend fun auth(): Token {
         val auth = Base64.getEncoder().encodeToString("${config.clientId}:${config.secret}".toByteArray())
 
         val resp = client.post<AuthResponse>(AUTH_URL) {
@@ -113,9 +112,10 @@ class RedditClient(private val config: RedditConfig, private val client: HttpCli
 
     class Token(val accessToken: String, val expireTime: Int, val refreshToken: String) {
 
-        val expired: Boolean get() {
-            return abs(Times.now() - expireTime) < EXPIRE_DIFF
-        }
+        val expired: Boolean
+            get() {
+                return abs(Times.now() - expireTime) < EXPIRE_DIFF
+            }
     }
 }
 
