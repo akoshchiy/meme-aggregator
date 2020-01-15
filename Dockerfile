@@ -1,5 +1,10 @@
 FROM bellsoft/liberica-openjdk-alpine:11.0.5
-RUN gradlew shadowJar
-RUN cp -r config ./build/libs
-WORKDIR ./build/libs
+RUN mkdir /build
+ADD . /build
+WORKDIR /build
+RUN ./gradlew shadowJar
+RUN mkdir /app
+RUN cp -r config /app
+RUN cp build/libs/*.jar /app
+WORKDIR /app
 CMD ["java", "-jar", "*.jar"]
