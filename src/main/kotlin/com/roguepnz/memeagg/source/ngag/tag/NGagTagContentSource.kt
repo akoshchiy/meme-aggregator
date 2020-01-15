@@ -15,7 +15,6 @@ class NGagTagContentSource(private val config: NGagTagConfig,
     private val cursorContentSource = CursorContentSource(
         cursorProvider(),
         stateProvider,
-        config.bufferSize,
         300
     )
 

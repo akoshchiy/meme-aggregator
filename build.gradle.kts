@@ -1,5 +1,7 @@
 plugins {
+    application
     kotlin("jvm") version "1.3.61"
+    id("com.github.johnrengelman.shadow") version "5.0.0"
 }
 
 group = "com.roguepnz"
@@ -13,6 +15,11 @@ repositories {
     jcenter()
     mavenCentral()
 }
+
+application {
+    mainClassName = "com.roguepnz.memeagg.MemeAppKt"
+}
+
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
@@ -35,5 +42,15 @@ tasks {
     }
     compileTestKotlin {
         kotlinOptions.jvmTarget = javaVersion
+    }
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes(
+            mapOf(
+                "Main-Class" to application.mainClassName
+            )
+        )
     }
 }

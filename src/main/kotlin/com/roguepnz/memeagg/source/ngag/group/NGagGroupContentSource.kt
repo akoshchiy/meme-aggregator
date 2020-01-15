@@ -14,7 +14,6 @@ class NGagGroupContentSource(private val config: NGagGroupConfig,
     private val cursorContentSource = CursorContentSource(
         prepareProvider(),
         stateProvider,
-        config.bufferSize,
         300
     )
 
