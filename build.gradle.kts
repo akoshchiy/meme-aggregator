@@ -20,7 +20,6 @@ application {
     mainClassName = "com.roguepnz.memeagg.MemeAppKt"
 }
 
-
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("io.ktor:ktor-server-netty:$ktorVersion")

@@ -5,6 +5,6 @@ WORKDIR /build
 RUN ./gradlew shadowJar
 RUN mkdir /app
 RUN cp -r config /app
-RUN cp build/libs/*.jar /app
+RUN cp build/libs/meme-aggregator-1.0-SNAPSHOT-all.jar /app
 WORKDIR /app
-CMD ["java", "-jar", "*.jar"]
+CMD ["java", "-jar", "meme-aggregator-1.0-SNAPSHOT-all.jar"]
