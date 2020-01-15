@@ -6,8 +6,8 @@ import com.roguepnz.memeagg.core.dao.ContentDao
 import com.roguepnz.memeagg.feed.api.FeedController
 import com.roguepnz.memeagg.crawler.ContentCrawler
 import com.roguepnz.memeagg.crawler.ContentWriter
-import com.roguepnz.memeagg.crawler.payload.PayloadUploader
-import com.roguepnz.memeagg.crawler.payload.s3.S3Client
+import com.roguepnz.memeagg.crawler.PayloadUploader
+import com.roguepnz.memeagg.s3.S3Client
 import com.roguepnz.memeagg.db.MongoDbBuilder
 import com.roguepnz.memeagg.http.HttpClientBuilder
 import com.roguepnz.memeagg.source.ContentSourceBuilder
@@ -42,7 +42,12 @@ object AppContainer {
     init {
         put(HttpClientBuilder.build())
         put(S3Client(Config.s3))
-        put(PayloadUploader(get(S3Client::class), get(HttpClient::class)))
+        put(
+            PayloadUploader(
+                get(S3Client::class),
+                get(HttpClient::class)
+            )
+        )
 
         put(MongoDbBuilder.build())
         put(ContentDao(get(CoroutineDatabase::class)))

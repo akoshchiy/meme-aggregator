@@ -1,6 +1,5 @@
-package com.roguepnz.memeagg.crawler
+package com.roguepnz.memeagg.util
 
-import com.roguepnz.memeagg.util.loggerFor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel

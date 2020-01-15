@@ -3,9 +3,9 @@ package com.roguepnz.memeagg.crawler
 import com.roguepnz.memeagg.core.dao.ContentDao
 import com.roguepnz.memeagg.core.model.Content
 import com.roguepnz.memeagg.core.model.Meta
-import com.roguepnz.memeagg.crawler.payload.PayloadUploader
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.RawContent
+import com.roguepnz.memeagg.util.BatchWorker
 import com.roguepnz.memeagg.util.JSON
 import com.roguepnz.memeagg.util.loggerFor
 import kotlinx.coroutines.*
@@ -45,8 +45,10 @@ class ContentCrawler(private val writer: ContentWriter,
             if (set.contains(key)) {
                handleUpdate(key, item.raw)
             } else {
-                scope.launch {
-                    handleNew(key, item.raw)
+                supervisorScope {
+                    launch {
+                        handleNew(key, item.raw)
+                    }
                 }
             }
         }

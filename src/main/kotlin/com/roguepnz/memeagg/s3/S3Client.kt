@@ -1,4 +1,4 @@
-package com.roguepnz.memeagg.crawler.payload.s3
+package com.roguepnz.memeagg.s3
 
 import kotlinx.coroutines.future.await
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials

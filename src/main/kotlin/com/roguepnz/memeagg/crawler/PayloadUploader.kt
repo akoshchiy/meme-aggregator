@@ -1,7 +1,7 @@
-package com.roguepnz.memeagg.crawler.payload
+package com.roguepnz.memeagg.crawler
 
-import com.roguepnz.memeagg.crawler.CoroutineWorkerPool
-import com.roguepnz.memeagg.crawler.payload.s3.S3Client
+import com.roguepnz.memeagg.s3.S3Client
+import com.roguepnz.memeagg.util.CoroutineWorkerPool
 import com.roguepnz.memeagg.util.Hashes
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -19,11 +19,15 @@ class PayloadUploader(private val s3: S3Client, private val http: HttpClient) {
     }
 
     private suspend fun doUpload(key: String, downloadUrl: String): UploadResult {
-        val resp = http.get<HttpResponse>(downloadUrl)
-        val contentType = resp.headers["content-type"]
-        val bytes = resp.readBytes()
-        val hash = Hashes.md5(bytes)
-        val url = s3.upload(key, bytes, contentType!!)
-        return UploadResult(key, url, hash)
+        try {
+            val resp = http.get<HttpResponse>(downloadUrl)
+            val contentType = resp.headers["content-type"]
+            val bytes = resp.readBytes()
+            val hash = Hashes.md5(bytes)
+            val url = s3.upload(key, bytes, contentType!!)
+            return UploadResult(key, url, hash)
+        } catch (e: Exception) {
+            throw RuntimeException("UPLOAD FAILED: $key, url: $downloadUrl", e)
+        }
     }
 }

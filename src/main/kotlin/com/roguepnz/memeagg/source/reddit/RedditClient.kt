@@ -2,7 +2,7 @@ package com.roguepnz.memeagg.source.reddit
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.roguepnz.memeagg.core.model.ContentType
-import com.roguepnz.memeagg.crawler.CoroutineWorkerPool
+import com.roguepnz.memeagg.util.CoroutineWorkerPool
 import com.roguepnz.memeagg.source.model.Payload
 import com.roguepnz.memeagg.source.model.RawContent
 import com.roguepnz.memeagg.util.Times
@@ -21,7 +21,8 @@ private const val EXPIRE_DIFF = 60
 
 class RedditClient(private val config: RedditConfig, private val client: HttpClient) {
 
-    private val pool: CoroutineWorkerPool = CoroutineWorkerPool(1)
+    private val pool: CoroutineWorkerPool =
+        CoroutineWorkerPool(1)
 
     private var token: Token? = null
 

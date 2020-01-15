@@ -2,17 +2,13 @@ package com.roguepnz.memeagg.source.cursor
 
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.RawContent
-import com.roguepnz.memeagg.source.model.RawMeta
 import com.roguepnz.memeagg.source.state.StateProvider
 import com.roguepnz.memeagg.util.loggerFor
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
 import java.time.Duration
-import kotlin.math.log
 
 
 data class CursorState(
@@ -22,7 +18,6 @@ data class CursorState(
 
 class CursorContentSource(private val cursorProvider: CursorProvider,
                           private val stateProvider: StateProvider<CursorState>,
-                          private val bufSize: Int,
                           private val checkCount: Int) : ContentSource {
 
     private val logger = loggerFor<CursorContentSource>()
@@ -30,7 +25,7 @@ class CursorContentSource(private val cursorProvider: CursorProvider,
     private val scope = CoroutineScope(Dispatchers.IO)
 
     override fun listen(): ReceiveChannel<RawContent> {
-        val channel = Channel<RawContent>(bufSize)
+        val channel = Channel<RawContent>(Channel.UNLIMITED)
 
         scope.launch {
             try {

@@ -1,4 +1,4 @@
-package com.roguepnz.memeagg.crawler
+package com.roguepnz.memeagg.util
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -7,6 +7,7 @@ private typealias Task = suspend () -> Unit
 
 class CoroutineWorkerPool(workers: Int) {
 
+    private val logger = loggerFor<CoroutineWorkerPool>()
     private val queue = Channel<Task>(Channel.UNLIMITED)
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -14,7 +15,11 @@ class CoroutineWorkerPool(workers: Int) {
         repeat(workers) {
             scope.launch {
                 for (task in queue) {
-                    task()
+                    try {
+                        task()
+                    } catch (e: Exception) {
+                        logger.error("worker task failed", e)
+                    }
                 }
             }
         }
