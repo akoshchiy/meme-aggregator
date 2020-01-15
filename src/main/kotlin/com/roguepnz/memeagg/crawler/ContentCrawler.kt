@@ -5,22 +5,20 @@ import com.roguepnz.memeagg.core.model.Content
 import com.roguepnz.memeagg.core.model.Meta
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.RawContent
-import com.roguepnz.memeagg.util.BatchWorker
-import com.roguepnz.memeagg.util.JSON
-import com.roguepnz.memeagg.util.loggerFor
+import com.roguepnz.memeagg.util.*
 import kotlinx.coroutines.*
 
 class ContentCrawler(config: CrawlerConfig,
                      private val writer: ContentWriter,
                      private val contentDao: ContentDao,
                      private val uploader: PayloadUploader,
-                     private val downloader: PayloadDownloader) {
+                     private val downloader: UrlDownloader) {
 
     private val logger = loggerFor<ContentCrawler>()
 
     private class BatchItem(val sourceId: String, val raw: RawContent)
 
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private val batchWorker = BatchWorker(config.crawlerQueueSize, config.crawlerWaitTimeSec, this::handleBatch)
 
@@ -43,10 +41,8 @@ class ContentCrawler(config: CrawlerConfig,
             if (set.contains(key)) {
                handleUpdate(key, item.raw)
             } else {
-                supervisorScope {
-                    launch {
-                        handleNew(key, item.raw)
-                    }
+                scope.launch {
+                    handleNew(key, item.raw)
                 }
             }
         }
@@ -69,12 +65,14 @@ class ContentCrawler(config: CrawlerConfig,
         val downloadRes = downloader.download(raw.payload.url)
         val url = uploader.upload(key, downloadRes.data, downloadRes.contentType)
 
+        val hash = Hashes.md5(downloadRes.data)
+
         writer.save(
             Content(
                 null,
                 raw.payload.type.code,
                 url,
-                downloadRes.hash,
+                hash,
                 Meta(
                     key,
                     raw.publishTime,

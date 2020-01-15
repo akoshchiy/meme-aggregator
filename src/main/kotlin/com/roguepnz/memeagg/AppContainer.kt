@@ -6,7 +6,7 @@ import com.roguepnz.memeagg.core.dao.ContentDao
 import com.roguepnz.memeagg.feed.api.FeedController
 import com.roguepnz.memeagg.crawler.ContentCrawler
 import com.roguepnz.memeagg.crawler.ContentWriter
-import com.roguepnz.memeagg.crawler.PayloadDownloader
+import com.roguepnz.memeagg.util.UrlDownloader
 import com.roguepnz.memeagg.crawler.PayloadUploader
 import com.roguepnz.memeagg.s3.S3Client
 import com.roguepnz.memeagg.db.MongoDbBuilder
@@ -45,8 +45,6 @@ object AppContainer {
         put(S3Client(Config.s3))
 
         put(PayloadUploader(Config.crawler, get(S3Client::class)))
-        put(PayloadDownloader(Config.crawler, get(HttpClient::class)))
-
 
         put(MongoDbBuilder.build())
         put(ContentDao(get(CoroutineDatabase::class)))
@@ -60,7 +58,7 @@ object AppContainer {
                 get(ContentWriter::class),
                 get(ContentDao::class),
                 get(PayloadUploader::class),
-                get(PayloadDownloader::class)
+                UrlDownloader(Config.crawler.maxConcurrentDownloads, get(HttpClient::class))
             )
         )
 

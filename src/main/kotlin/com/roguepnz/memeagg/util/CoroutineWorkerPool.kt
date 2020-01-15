@@ -7,7 +7,6 @@ private typealias Task = suspend () -> Unit
 
 class CoroutineWorkerPool(workers: Int) {
 
-    private val logger = loggerFor<CoroutineWorkerPool>()
     private val queue = Channel<Task>(Channel.UNLIMITED)
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -15,11 +14,7 @@ class CoroutineWorkerPool(workers: Int) {
         repeat(workers) {
             scope.launch {
                 for (task in queue) {
-                    try {
-                        task()
-                    } catch (e: Exception) {
-                        logger.error("worker task failed", e)
-                    }
+                    task()
                 }
             }
         }
@@ -28,8 +23,11 @@ class CoroutineWorkerPool(workers: Int) {
     fun <T> submitAsync(action: suspend () -> T): Deferred<T> {
         val deferred = CompletableDeferred<T>()
         queue.offer {
-            val res = action()
-            deferred.complete(res)
+            try {
+                deferred.complete(action())
+            } catch (e: Exception) {
+                deferred.completeExceptionally(e)
+            }
         }
         return deferred
     }
