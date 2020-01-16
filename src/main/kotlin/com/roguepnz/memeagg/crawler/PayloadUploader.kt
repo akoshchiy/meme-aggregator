@@ -6,7 +6,7 @@ import com.roguepnz.memeagg.util.CoroutineWorkerPool
 import io.micrometer.core.instrument.DistributionSummary
 import io.micrometer.core.instrument.Timer
 
-typealias UploadResult = String
+typealias UploadUrl = String
 
 class PayloadUploaderException(msg: String, cause: Throwable) : Exception(msg, cause)
 
@@ -23,7 +23,7 @@ class PayloadUploader(config: CrawlerConfig, private val s3: S3Client, private v
     private val timer = Timer.builder("crawler.uploader.uploadspeed")
         .register(metrics.registry)
 
-    suspend fun upload(key: String, payload: ByteArray, contentType: String): UploadResult {
+    suspend fun upload(key: String, payload: ByteArray, contentType: String): UploadUrl {
         summary.record(payload.size / 1024.0)
 
         return pool.submit {

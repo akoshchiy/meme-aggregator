@@ -66,10 +66,11 @@ class NodeService(private val config: NodeConfig,
     private fun startCrawl(sourceId: String) {
         val source = builder.build(sourceId)
         if (source != null) {
-            logger.info("[$nodeId] grabbed source: $sourceId")
-            crawler.crawl(sourceId, source)
+            val config = builder.config(sourceId)
+            crawler.crawl(sourceId, config!!.type, source)
             remainingSources -= 1
             sources.add(sourceId)
+            logger.info("[$nodeId] grabbed source: $sourceId")
         } else {
             logger.warn("config not found for source: $sourceId")
         }

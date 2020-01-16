@@ -119,10 +119,12 @@ class DebesteContentSource(private val config: DebesteConfig,
         return RawContent(
             id,
             title,
+            "",
             payload,
             time,
-            rate,
             0,
+            0,
+            rate,
             comments
         )
     }

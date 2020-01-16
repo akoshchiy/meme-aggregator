@@ -33,7 +33,15 @@ class ContentSourceBuilder(config: Config, private val http: HttpClient, private
     }
 
     fun build(id: String): ContentSource? {
-        return if (configs.containsKey(id)) build(configs[id]!!) else null
+        val config = config(id)
+        if (config != null) {
+            return build(config)
+        }
+        return null
+    }
+
+    fun config(id: String): ContentSourceConfig? {
+        return if (configs.containsKey(id)) configs[id] else null
     }
 
     private fun build(config: ContentSourceConfig): ContentSource {

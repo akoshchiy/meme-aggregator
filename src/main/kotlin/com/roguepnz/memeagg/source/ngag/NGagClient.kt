@@ -28,10 +28,12 @@ class NGagClient(private val client: HttpClient) {
                 RawContent(
                     it.id,
                     it.title,
+                    it.postSection.name,
                     extractPayload(it),
                     it.creationTs,
                     it.upVoteCount,
                     it.downVoteCount,
+                    0,
                     it.commentsCount
                 )
             }
@@ -56,6 +58,8 @@ data class NGagMeta(val timestamp: Int, val status: String, val sid: String)
 
 data class NGagPostData(val posts: List<NGagPost>, val nextCursor: String?)
 
+data class NGagPostSection(val name: String)
+
 data class NGagPost(val id: String,
                     val url: String,
                     val type: String,
@@ -64,6 +68,7 @@ data class NGagPost(val id: String,
                     val downVoteCount: Int,
                     val creationTs: Int,
                     val commentsCount: Int,
+                    val postSection: NGagPostSection,
                     val images: Map<String, NGagPostImage>) {
 
     val isPhoto: Boolean get() = type == "Photo"

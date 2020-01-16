@@ -17,7 +17,7 @@ class FeedController(private val contentDao: ContentDao) : KtorController {
             val p = call.parameters
 
             val count = if (p.contains("count")) p.getOrFail<Int>("count") else 10
-            val after = if (p.contains("after")) p.getOrFail<Int>("after") else null
+            val after = if (p.contains("after")) p.getOrFail<String>("after") else null
 
             call.respond(getFeed(count, after))
         }
@@ -35,8 +35,15 @@ class FeedController(private val contentDao: ContentDao) : KtorController {
         }
     }
 
-    private suspend fun getFeed(count: Int, after: Int?): Feed {
-        return contentDao.getFeedByTime(count, after)
+    private suspend fun getFeed(count: Int, after: String?): Feed {
+        if (after == null) {
+            return contentDao.getFeed(count)
+        }
+        val content = contentDao.getById(after)
+        if (content == null) {
+            return contentDao.getFeed(count)
+        }
+        return contentDao.getFeed(count, content.publishTime)
     }
 
 
