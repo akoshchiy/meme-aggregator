@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.time.delay
 import java.time.Duration
+import kotlin.math.log
 
 class NodeService(private val config: NodeConfig,
                   private val dao: NodeSourceDao,
@@ -16,49 +17,58 @@ class NodeService(private val config: NodeConfig,
                   private val crawler: ContentCrawler) {
 
     private val logger = loggerFor<NodeService>()
-
     private val scope = CoroutineScope(Dispatchers.IO)
-
-    val nodeId: String = Strings.randomAlphaNumeric(6)
+    private val sources = HashSet<String>()
+    private val nodeId: String = Strings.randomAlphaNumeric(6)
+    private var remainingSources = config.maxSourcesCount
 
     fun start() {
-        logger.info("starting crawling node: $nodeId")
+        logger.info("starting crawling node: [$nodeId]")
         scope.launch {
-            publishSources()
-            launch {
-                updateGrabbed()
-            }
-            grabSources()
+            loop()
         }
     }
 
-    private suspend fun publishSources() {
-        dao.insert(builder.sources)
+    private suspend fun loop() {
+        try {
+            startLoop()
+        } catch (e: Exception) {
+            logger.error("node service failed", e)
+            delay(Duration.ofSeconds(1))
+            loop()
+        }
     }
 
-    private suspend fun grabSources() {
-        var workers = config.maxSourcesCount
-        while (workers > 0) {
-            val sourceId = dao.tryGrab(nodeId)
-            if (sourceId != null) {
-                startCrawl(sourceId)
-                workers -= 1
+    private suspend fun startLoop() {
+        dao.insert(builder.sources)
+        while (true) {
+            if (remainingSources > 0) {
+                tryGrab()
+                continue
             } else {
-                delay(Duration.ofSeconds(config.grabDelaySec))
+                delay(Duration.ofSeconds(config.checkGrabbedSec))
             }
+            dao.updateGrabbed(nodeId, sources)
+        }
+
+    }
+
+    private suspend fun tryGrab() {
+        val sourceId = dao.tryGrab(nodeId)
+        if (sourceId != null) {
+            startCrawl(sourceId)
         }
     }
 
     private fun startCrawl(sourceId: String) {
         val source = builder.build(sourceId)
-        logger.info("grabbed source: $sourceId, node: $nodeId")
-        crawler.crawl(sourceId, source)
-    }
-
-    private suspend fun updateGrabbed() {
-        while (true) {
-            dao.updateGrabbed(nodeId)
-            delay(Duration.ofSeconds(config.checkGrabbedSec))
+        if (source != null) {
+            logger.info("[$nodeId] grabbed source: $sourceId")
+            crawler.crawl(sourceId, source)
+            remainingSources -= 1
+            sources.add(sourceId)
+        } else {
+            logger.warn("config not found for source: $sourceId")
         }
     }
 }

@@ -18,7 +18,6 @@ import java.util.regex.Pattern
 
 
 private const val BASE_URL = "http://debeste.de"
-private val COMMENT_PATTERN = Pattern.compile("Kommentar \\((\\d+)\\)")
 private val DATE_PATTERN = SimpleDateFormat("yyyy-MM-dd hh:mm:ss")
 
 class DebesteContentSource(private val config: DebesteConfig,
@@ -104,7 +103,7 @@ class DebesteContentSource(private val config: DebesteConfig,
         val rateStr = post.selectFirst(".rate").text()
         val rate = rateStr.substring(1, rateStr.length - 1).toInt()
 
-//        val objectMeta = post.selectFirst(".objectMeta")
+        val objectMeta = post.selectFirst(".objectMeta")
 //        val commentText = objectMeta.selectFirst("a[href^=javascript]").text().trim()
 //        val commentPart = commentText.split("(")[1]
 //        val comments = commentPart.substring(0, commentPart.length - 1).toInt()

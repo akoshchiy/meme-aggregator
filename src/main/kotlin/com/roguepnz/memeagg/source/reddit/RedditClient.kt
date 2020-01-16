@@ -5,6 +5,7 @@ import com.roguepnz.memeagg.core.model.ContentType
 import com.roguepnz.memeagg.util.CoroutineWorkerPool
 import com.roguepnz.memeagg.source.model.Payload
 import com.roguepnz.memeagg.source.model.RawContent
+import com.roguepnz.memeagg.util.JSON
 import com.roguepnz.memeagg.util.Times
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -19,7 +20,7 @@ import kotlin.math.abs
 private const val AUTH_URL = "https://www.reddit.com/api/v1/access_token"
 private const val EXPIRE_DIFF = 60
 
-class RedditClient(private val config: RedditConfig, private val client: HttpClient) {
+class RedditClient(private val config: RedditConfig, private val http: HttpClient) {
 
     private val pool: CoroutineWorkerPool = CoroutineWorkerPool(1)
 
@@ -29,8 +30,11 @@ class RedditClient(private val config: RedditConfig, private val client: HttpCli
         return pool.submit {
             checkToken()
             val cursor = if (after != null) "after=${after}" else ""
-            val url = "https://www.reddit.com/r/${subreddits.joinToString("+")}/new.json?$cursor"
-            extractContent(client.get(url))
+            val url = "https://oauth.reddit.com/r/${subreddits.joinToString("+")}/new.json?$cursor"
+            extractContent(http.get(url) {
+                header("Authorization", "Bearer ${token?.accessToken}")
+                userAgent(config.userAgent)
+            })
         }
     }
 
@@ -65,7 +69,7 @@ class RedditClient(private val config: RedditConfig, private val client: HttpCli
     suspend fun auth(): Token {
         val auth = Base64.getEncoder().encodeToString("${config.clientId}:${config.secret}".toByteArray())
 
-        val resp = client.post<AuthResponse>(AUTH_URL) {
+        val resp = http.post<AuthResponse>(AUTH_URL) {
             parameter("grant_type", "client_credentials")
             parameter("scope", "read")
             parameter("duration", "permanent")
@@ -85,7 +89,7 @@ class RedditClient(private val config: RedditConfig, private val client: HttpCli
     }
 
     private suspend fun refresh(): Token {
-        val resp = client.post<AuthResponse>(AUTH_URL) {
+        val resp = http.post<AuthResponse>(AUTH_URL) {
             parameter("grant_type", "refresh_token")
             parameter("refresh_toke", token!!.refreshToken)
             userAgent(config.userAgent)

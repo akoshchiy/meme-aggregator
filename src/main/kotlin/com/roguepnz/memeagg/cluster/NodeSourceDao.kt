@@ -1,13 +1,10 @@
 package com.roguepnz.memeagg.cluster
 
-import com.mongodb.MongoBulkWriteException
 import com.mongodb.client.model.*
 import com.roguepnz.memeagg.db.Dao
-import com.roguepnz.memeagg.util.Times
 import org.bson.BsonDateTime
 import org.bson.Document
 import org.litote.kmongo.coroutine.CoroutineDatabase
-import java.util.concurrent.TimeUnit
 
 
 class NodeSourceDao(private val config: NodeConfig, db: CoroutineDatabase) : Dao {
@@ -31,8 +28,14 @@ class NodeSourceDao(private val config: NodeConfig, db: CoroutineDatabase) : Dao
         collection.bulkWrite(updates, options)
     }
 
-    suspend fun updateGrabbed(node: String) {
-        collection.updateMany(Filters.eq("node", node), Updates.set("checkTime", BsonDateTime(System.currentTimeMillis())))
+    suspend fun updateGrabbed(node: String, sources: Iterable<String>) {
+        collection.updateMany(
+            Filters.and(
+                Filters.eq("node", node),
+                Filters.`in`("_id", sources)
+            ),
+            Updates.set("checkTime", BsonDateTime(System.currentTimeMillis()))
+        )
     }
 
     suspend fun tryGrab(node: String): String? {

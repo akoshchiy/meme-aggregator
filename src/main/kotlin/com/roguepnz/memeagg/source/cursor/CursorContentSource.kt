@@ -18,7 +18,8 @@ data class CursorState(
 
 class CursorContentSource(private val cursorProvider: CursorProvider,
                           private val stateProvider: StateProvider<CursorState>,
-                          private val checkCount: Int) : ContentSource {
+                          private val checkCount: Int,
+                          private val updateDelaySec: Int = 60) : ContentSource {
 
     private val logger = loggerFor<CursorContentSource>()
 
@@ -26,20 +27,24 @@ class CursorContentSource(private val cursorProvider: CursorProvider,
 
     override fun listen(): ReceiveChannel<RawContent> {
         val channel = Channel<RawContent>(Channel.UNLIMITED)
-
         scope.launch {
-            try {
-                startCrawl(channel)
-            } catch (e: Exception) {
-                logger.error("crawl iteration failed", e)
-            }
+            crawl(channel)
         }
-//        scope.launch { startUpdate(channel) }
+        scope.launch { startUpdate(channel) }
 
         return channel
     }
 
-    private suspend fun startCrawl(channel: Channel<RawContent>) {
+    private suspend fun crawl(channel: Channel<RawContent>) {
+        try {
+            doCrawl(channel)
+        } catch (e: Exception) {
+            logger.error("crawl iteration failed", e)
+            crawl(channel)
+        }
+    }
+
+    private suspend fun doCrawl(channel: Channel<RawContent>) {
         val state = stateProvider.get() ?: CursorState()
         while (true) {
             val cursor = state.cursor
@@ -66,8 +71,12 @@ class CursorContentSource(private val cursorProvider: CursorProvider,
 
     private suspend fun startUpdate(channel: Channel<RawContent>) {
         while (true) {
-            checkUpdate(channel)
-            delay(Duration.ofMinutes(1))
+            try {
+                checkUpdate(channel)
+                delay(Duration.ofSeconds(updateDelaySec.toLong()))
+            } catch (e: Exception) {
+                logger.error("update iteration failed", e)
+            }
         }
     }
 

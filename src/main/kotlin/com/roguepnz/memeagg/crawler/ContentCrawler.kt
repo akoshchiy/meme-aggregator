@@ -27,6 +27,7 @@ class ContentCrawler(config: CrawlerConfig,
             val channel = source.listen()
             for (raw in channel) {
                 batchWorker.add(BatchItem(sourceId, raw))
+                logger.info("CRAWL: ${JSON.stringify(raw)}")
             }
         }
     }
