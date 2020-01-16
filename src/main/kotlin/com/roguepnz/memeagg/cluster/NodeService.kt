@@ -42,22 +42,25 @@ class NodeService(private val config: NodeConfig,
     private suspend fun startLoop() {
         dao.insert(builder.sources)
         while (true) {
+            dao.updateGrabbed(nodeId, sources)
             if (remainingSources > 0) {
-                tryGrab()
+                val grabbed = tryGrab()
+                if (!grabbed) {
+                    delay(Duration.ofSeconds(config.checkGrabbedSec))
+                }
                 continue
             } else {
                 delay(Duration.ofSeconds(config.checkGrabbedSec))
             }
-            dao.updateGrabbed(nodeId, sources)
         }
-
     }
 
-    private suspend fun tryGrab() {
+    private suspend fun tryGrab(): Boolean {
         val sourceId = dao.tryGrab(nodeId)
         if (sourceId != null) {
             startCrawl(sourceId)
         }
+        return sourceId != null
     }
 
     private fun startCrawl(sourceId: String) {

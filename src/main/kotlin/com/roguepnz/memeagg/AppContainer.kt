@@ -11,6 +11,8 @@ import com.roguepnz.memeagg.crawler.PayloadUploader
 import com.roguepnz.memeagg.s3.S3Client
 import com.roguepnz.memeagg.db.MongoDbBuilder
 import com.roguepnz.memeagg.http.HttpClientBuilder
+import com.roguepnz.memeagg.metrics.MetricsController
+import com.roguepnz.memeagg.metrics.MetricsService
 import com.roguepnz.memeagg.source.ContentSourceBuilder
 import io.ktor.client.HttpClient
 import org.litote.kmongo.coroutine.CoroutineDatabase
@@ -41,10 +43,11 @@ object AppContainer {
     }
 
     init {
+        put(MetricsService())
         put(HttpClientBuilder.build())
         put(S3Client(Config.s3))
 
-        put(PayloadUploader(Config.crawler, get(S3Client::class)))
+        put(PayloadUploader(Config.crawler, get(S3Client::class), get(MetricsService::class)))
 
         put(MongoDbBuilder.build())
         put(ContentDao(get(CoroutineDatabase::class)))
@@ -74,5 +77,7 @@ object AppContainer {
         )
 
         put(FeedController(get(ContentDao::class)))
+        put(MetricsController(get(MetricsService::class)))
+
     }
 }
