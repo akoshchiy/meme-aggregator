@@ -53,11 +53,9 @@ class DebesteContentSource(private val config: DebesteConfig,
             (i..(i+step))
                 .map { scope.async { downloadPage(it) } }
                 .map { it.await() }
-                .forEach {
-                    for (raw in it) {
-                        channel.send(raw)
-                    }
-                }
+                .flatMap { it.asIterable() }
+                .forEach { channel.send(it) }
+
             state.pages = i
             stateProvider.save(state)
         }

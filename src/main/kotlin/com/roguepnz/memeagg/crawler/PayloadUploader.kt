@@ -13,18 +13,24 @@ class PayloadUploaderException(msg: String, cause: Throwable) : Exception(msg, c
 class PayloadUploader(config: CrawlerConfig, private val s3: S3Client, private val metrics: MetricsService) {
 
     private val pool = CoroutineWorkerPool(config.maxConcurrentUploads)
+    private val m = Metrics()
 
-    private val summary = DistributionSummary.builder("crawler.uploader.payloadsize")
-        .description("payload size in kb")
-//        .minimumExpectedValue(1)
-//        .maximumExpectedValue()
-        .register(metrics.registry)
+
 
     private val timer = Timer.builder("crawler.uploader.uploadspeed")
         .register(metrics.registry)
 
+    private inner class Metrics {
+        val payloadSize: DistributionSummary = DistributionSummary.builder("crawler.uploader.payloadsize")
+            .description("payload size in kb")
+//        .minimumExpectedValue(1)
+//        .maximumExpectedValue()
+            .register(metrics.registry)
+    }
+
+
     suspend fun upload(key: String, payload: ByteArray, contentType: String): UploadUrl {
-        summary.record(payload.size / 1024.0)
+        m.payloadSize.record(payload.size / 1024.0)
 
         return pool.submit {
             try {
