@@ -22,15 +22,14 @@ object Config {
 
     private fun parse(path: String): Config = ConfigFactory.parseFile(File(path)).resolve()
 
-
     init {
-        logger.trace("====== CONFIGS ======")
-        logger.trace("db: $db")
-        logger.trace("sources: $sources")
-        logger.trace("crawler: ${JSON.stringify(crawler)}")
-        logger.trace("node: ${JSON.stringify(node)}")
-        logger.trace("s3: ${JSON.stringify(s3)}")
-        logger.trace("server: ${JSON.stringify(server)}")
-        logger.trace("=====================")
+        logger.info("====== CONFIGS ======")
+        logger.info("db: $db")
+        logger.info("sources: $sources")
+        logger.info("crawler: ${JSON.stringify(crawler)}")
+        logger.info("node: ${JSON.stringify(node)}")
+        logger.info("s3: ${JSON.stringify(s3)}")
+        logger.info("server: ${JSON.stringify(server)}")
+        logger.info("=====================")
     }
 }
