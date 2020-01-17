@@ -4,11 +4,15 @@ import com.roguepnz.memeagg.cluster.NodeConfig
 import com.roguepnz.memeagg.crawler.CrawlerConfig
 import com.roguepnz.memeagg.s3.S3Config
 import com.roguepnz.memeagg.http.ServerConfig
+import com.roguepnz.memeagg.util.JSON
+import com.roguepnz.memeagg.util.loggerFor
 import com.typesafe.config.Config
 import com.typesafe.config.ConfigFactory
 import java.io.File
 
 object Config {
+    private val logger = loggerFor<com.roguepnz.memeagg.Config>()
+
     val db: Config = parse("./config/db.conf")
     val sources: Config = parse("./config/sources.conf")
     val crawler: CrawlerConfig = CrawlerConfig(parse("./config/crawler.conf"))
@@ -17,4 +21,16 @@ object Config {
     val server: ServerConfig = ServerConfig(parse("./config/server.conf"))
 
     private fun parse(path: String): Config = ConfigFactory.parseFile(File(path)).resolve()
+
+
+    init {
+        logger.trace("====== CONFIGS ======")
+        logger.trace("db: $db")
+        logger.trace("sources: $sources")
+        logger.trace("crawler: ${JSON.stringify(crawler)}")
+        logger.trace("node: ${JSON.stringify(node)}")
+        logger.trace("s3: ${JSON.stringify(s3)}")
+        logger.trace("server: ${JSON.stringify(server)}")
+        logger.trace("=====================")
+    }
 }

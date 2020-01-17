@@ -4,6 +4,7 @@ import com.mongodb.client.model.*
 import com.roguepnz.memeagg.core.model.*
 import com.roguepnz.memeagg.db.Dao
 import com.roguepnz.memeagg.feed.api.Feed
+import com.roguepnz.memeagg.source.config.SourceType
 import org.bson.Document
 import org.bson.types.ObjectId
 import org.litote.kmongo.coroutine.CoroutineDatabase
@@ -41,6 +42,26 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
         return collection<Content>().findOneById(ObjectId(id))
     }
 
+    suspend fun getViewById(id: String): ContentView? {
+        val c = collection<Content>().findOneById(ObjectId(id)) ?: return null
+        return ContentView(
+            c.id!!,
+            c.rawId,
+            ContentType.fromCode(c.contentType),
+            c.url,
+            c.hash,
+            SourceType.fromCode(c.sourceType),
+            c.sourceId,
+            c.publishTime,
+            c.likesCount,
+            c.dislikesCount,
+            c.commentsCount,
+            c.rating,
+            c.author,
+            c.title
+        )
+    }
+
     suspend fun insert(batch: List<Content>) {
         val options = BulkWriteOptions()
             .ordered(false)
@@ -51,7 +72,7 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
                 Updates.combine(
                     Updates.setOnInsert(
                         Document()
-                            .append("type", it.contentType)
+                            .append("contentType", it.contentType)
                             .append("insertSeq", it.insertSeq)
                             .append("hash", it.hash)
                             .append("url", it.url)
@@ -65,6 +86,7 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
                             .append("likesCount", it.likesCount)
                             .append("dislikesCount", it.dislikesCount)
                             .append("commentsCount", it.commentsCount)
+                            .append("order", it.order)
                     )
                 ),
                 UpdateOptions().upsert(true)
@@ -103,9 +125,9 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
     suspend fun getFeed(count: Int, after: Int? = null): Feed {
         var query = collection<Document>()
             .find()
-            .sort(Sorts.descending("publishTime"))
+            .sort(Sorts.descending("order"))
             .limit(count)
-            .projection(Projections.include("type", "url", "publishTime"))
+            .projection(Projections.include("contentType", "url"))
 
         if (after != null) {
             query = query.filter(Filters.lt("order", after))
@@ -115,7 +137,7 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
             .map {
                 ContentPreview(
                     it.getObjectId("_id").toHexString(),
-                    ContentType.fromCode(it.getInteger("type")),
+                    ContentType.fromCode(it.getInteger("contentType")),
                     it.getString("url")
                 )
             }

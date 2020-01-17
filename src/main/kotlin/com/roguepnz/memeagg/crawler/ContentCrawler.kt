@@ -54,16 +54,17 @@ class ContentCrawler(config: CrawlerConfig,
     }
 
     private suspend fun handleUpdate(item: BatchItem) {
-        writer.updateMeta(
-            ContentUpdate(
-                item.rawId,
-                item.raw.publishTime,
-                item.raw.likesCount,
-                item.raw.dislikesCount,
-                item.raw.commentsCount
-            )
+        val update = ContentUpdate(
+            item.rawId,
+            item.raw.likesCount,
+            item.raw.dislikesCount,
+            item.raw.commentsCount,
+            item.raw.rating
         )
-        logger.info("UP: ${JSON.stringify(item.raw)}")
+
+        writer.updateMeta(update)
+
+        logger.trace("crawl up: ${JSON.stringify(update)}")
     }
 
     private suspend fun handleNew(seq: Int, item: BatchItem) {
@@ -74,29 +75,29 @@ class ContentCrawler(config: CrawlerConfig,
 
         val hash = Hashes.md5(downloadRes.data)
 
-        val order = if (raw.publishTime == 0) -seq else raw.publishTime
+        val order = if (raw.publishTime == 0) seq else raw.publishTime
 
-        writer.save(
-            Content(
-                null,
-                seq,
-                item.rawId,
-                raw.payload.type.code,
-                url,
-                hash,
-                item.type.code,
-                item.sourceId,
-                raw.publishTime,
-                raw.likesCount,
-                raw.dislikesCount,
-                raw.commentsCount,
-                raw.rating,
-                raw.author,
-                raw.title,
-                order
-            )
+        val content = Content(
+            null,
+            seq,
+            item.rawId,
+            raw.payload.type.code,
+            url,
+            hash,
+            item.type.code,
+            item.sourceId,
+            raw.publishTime,
+            raw.likesCount,
+            raw.dislikesCount,
+            raw.commentsCount,
+            raw.rating,
+            raw.author,
+            raw.title,
+            order
         )
 
-        logger.info("CRAWL: ${JSON.stringify(raw)}")
+        writer.save(content)
+
+        logger.trace("crawl new: ${JSON.stringify(content)}")
     }
 }

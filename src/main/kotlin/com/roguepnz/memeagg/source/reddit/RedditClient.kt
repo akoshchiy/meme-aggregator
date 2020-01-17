@@ -47,7 +47,7 @@ class RedditClient(private val config: RedditConfig, private val http: HttpClien
                 RawContent(
                     it.data.name,
                     it.data.title,
-                    it.data.authorFullName,
+                    it.data.authorFullName ?: "",
                     extractPayload(it.data),
                     it.data.createdUtc,
                     0,
@@ -147,7 +147,7 @@ data class RedditLinkData(@JsonProperty("num_comments") val numComments: Int,
                           val url: String,
                           val name: String,
                           val title: String,
-                          @JsonProperty("author_fullname") val authorFullName: String) {
+                          @JsonProperty("author_fullname") val authorFullName: String?) {
     val isImage get() = preview != null
 }
 

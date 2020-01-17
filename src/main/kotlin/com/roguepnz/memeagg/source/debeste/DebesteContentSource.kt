@@ -10,11 +10,12 @@ import com.roguepnz.memeagg.util.loggerFor
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.time.delay
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
-import java.lang.Exception
 import java.text.SimpleDateFormat
-import java.util.regex.Pattern
+import java.time.Duration
+import kotlin.Exception
 
 
 private const val BASE_URL = "http://debeste.de"
@@ -29,9 +30,8 @@ class DebesteContentSource(private val config: DebesteConfig,
 
     override fun listen(): ReceiveChannel<RawContent> {
         val channel = Channel<RawContent>(Channel.UNLIMITED)
-        scope.launch {
-            crawl(channel)
-        }
+        scope.launch { crawl(channel) }
+        scope.launch { update(channel) }
         return channel
     }
 
@@ -50,15 +50,29 @@ class DebesteContentSource(private val config: DebesteConfig,
         val step = config.maxConcurrentDownloads
 
         for (i in state.pages..config.maxPages step step) {
-            (i..(i+step))
-                .map { scope.async { downloadPage(it) } }
-                .map { it.await() }
-                .flatMap { it.asIterable() }
-                .forEach { channel.send(it) }
-
+            download((i..(i+step)), channel)
             state.pages = i
             stateProvider.save(state)
         }
+    }
+
+    private suspend fun update(channel: Channel<RawContent>) {
+        while (true) {
+            delay(Duration.ofSeconds(config.updateDelaySec.toLong()))
+            try {
+                download((1..config.updatePages), channel)
+            } catch (e: Exception) {
+                logger.error("update iteration failed", e)
+            }
+        }
+    }
+
+    private suspend fun download(range: IntRange, channel: Channel<RawContent>) {
+        range
+            .map { scope.async { downloadPage(it) } }
+            .map { it.await() }
+            .flatMap { it.asIterable() }
+            .forEach { channel.send(it) }
     }
 
     private suspend fun load(url: String): String {
@@ -89,7 +103,7 @@ class DebesteContentSource(private val config: DebesteConfig,
     }
 
     private suspend fun parseBox(html: Element): RawContent {
-        val postUrl = html.selectFirst("a[href^=$BASE_URL]").attr("href").trim()
+        val postUrl = html.selectFirst(".objectMeta > a[href^=$BASE_URL]").attr("href").trim()
         val postHtml = load(postUrl)
         val post = Jsoup.parse(postHtml, BASE_URL)
 
@@ -102,16 +116,12 @@ class DebesteContentSource(private val config: DebesteConfig,
         val rate = rateStr.substring(1, rateStr.length - 1).toInt()
 
         val objectMeta = post.selectFirst(".objectMeta")
-//        val commentText = objectMeta.selectFirst("a[href^=javascript]").text().trim()
-//        val commentPart = commentText.split("(")[1]
-//        val comments = commentPart.substring(0, commentPart.length - 1).toInt()
-
-        val comments = 0
-
-//        val dateStr = objectMeta.text().trim()
-//        val time = extractTime(dateStr)
+        val commentText = objectMeta.selectFirst("a[href^=javascript]").text().trim()
+        val commentPart = commentText.split("(")[1]
+        val comments = commentPart.substring(0, commentPart.length - 1).toInt()
 
         val time = 0
+
         val id = postUrl.split("/")[3]
 
         return RawContent(
@@ -127,16 +137,6 @@ class DebesteContentSource(private val config: DebesteConfig,
         )
     }
 
-    private fun extractTime(text: String): Int {
-        if (text.isEmpty()) {
-            return 0
-        }
-        val dateStr = text.split("hinzugefügt:")[1].trim()
-        val date = DATE_PATTERN.parse(dateStr)
-        return (date.time / 1000).toInt()
-    }
-
-
     private fun extractPayload(wrapper: Element): Payload {
         val video = wrapper.selectFirst("video")
         if (video != null) {
@@ -150,8 +150,5 @@ class DebesteContentSource(private val config: DebesteConfig,
         val imgUrl = "${BASE_URL}$img"
 
         return Payload(ContentType.IMAGE, imgUrl)
-//        val split = imgUrl.split("//.")
-//        val ext = split[split.size - 1]
-//        if (ext == "gif")
     }
 }

@@ -2,6 +2,7 @@ package com.roguepnz.memeagg.feed.api
 
 import com.roguepnz.memeagg.core.dao.ContentDao
 import com.roguepnz.memeagg.core.model.Content
+import com.roguepnz.memeagg.core.model.ContentView
 import com.roguepnz.memeagg.http.KtorController
 import com.roguepnz.memeagg.http.RoutingConf
 import io.ktor.application.call
@@ -47,5 +48,5 @@ class FeedController(private val contentDao: ContentDao) : KtorController {
     }
 
 
-    private suspend fun getContent(id: String): Content? = contentDao.getById(id)
+    private suspend fun getContent(id: String): ContentView? = contentDao.getViewById(id)
 }
