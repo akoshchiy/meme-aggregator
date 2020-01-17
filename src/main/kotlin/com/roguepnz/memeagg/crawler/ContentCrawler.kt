@@ -74,7 +74,7 @@ class ContentCrawler(config: CrawlerConfig,
 
         val hash = Hashes.md5(downloadRes.data)
 
-        val time = if (raw.publishTime == 0) -seq else raw.publishTime
+        val order = if (raw.publishTime == 0) -seq else raw.publishTime
 
         writer.save(
             Content(
@@ -86,13 +86,14 @@ class ContentCrawler(config: CrawlerConfig,
                 hash,
                 item.type.code,
                 item.sourceId,
-                time,
+                raw.publishTime,
                 raw.likesCount,
                 raw.dislikesCount,
                 raw.commentsCount,
                 raw.rating,
                 raw.author,
-                raw.title
+                raw.title,
+                order
             )
         )
 

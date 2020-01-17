@@ -15,7 +15,7 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
     override suspend fun init() {
         collection<Document>().createIndexes(
             listOf(
-                IndexModel(Indexes.descending("publishTime")),
+                IndexModel(Indexes.descending("order")),
                 IndexModel(Indexes.ascending("hash"), IndexOptions().unique(true)),
                 IndexModel(Indexes.ascending("rawId"), IndexOptions().unique(true))
             )
@@ -100,30 +100,18 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
             .toSet()
     }
 
-    suspend fun getFeed(count: Int): Feed {
-        val content = collection<Document>()
+    suspend fun getFeed(count: Int, after: Int? = null): Feed {
+        var query = collection<Document>()
             .find()
             .sort(Sorts.descending("publishTime"))
             .limit(count)
             .projection(Projections.include("type", "url", "publishTime"))
-            .toList()
-            .map {
-                ContentPreview(
-                    it.getObjectId("_id").toHexString(),
-                    ContentType.fromCode(it.getInteger("type")),
-                    it.getString("url")
-                )
-            }
-        return Feed(content)
-    }
 
-    suspend fun getFeed(count: Int, publishTime: Int): Feed {
-        val content = collection<Document>()
-            .find(Filters.lt("publishTime", publishTime))
-            .sort(Sorts.descending("publishTime"))
-            .limit(count)
-            .projection(Projections.include("type", "url", "publishTime"))
-            .toList()
+        if (after != null) {
+            query = query.filter(Filters.lt("order", after))
+        }
+
+        val items = query.toList()
             .map {
                 ContentPreview(
                     it.getObjectId("_id").toHexString(),
@@ -131,6 +119,6 @@ class ContentDao(private val db: CoroutineDatabase) : Dao {
                     it.getString("url")
                 )
             }
-        return Feed(content)
+        return Feed(items)
     }
 }

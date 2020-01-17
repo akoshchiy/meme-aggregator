@@ -43,7 +43,7 @@ class FeedController(private val contentDao: ContentDao) : KtorController {
         if (content == null) {
             return contentDao.getFeed(count)
         }
-        return contentDao.getFeed(count, content.publishTime)
+        return contentDao.getFeed(count, content.order)
     }
 
 

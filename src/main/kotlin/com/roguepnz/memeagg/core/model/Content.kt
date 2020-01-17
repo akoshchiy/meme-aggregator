@@ -16,5 +16,6 @@ data class Content(@BsonId val id: String?,
                    val commentsCount: Int,
                    val rating: Int,
                    val author: String,
-                   val title: String)
+                   val title: String,
+                   val order: Int)
 
