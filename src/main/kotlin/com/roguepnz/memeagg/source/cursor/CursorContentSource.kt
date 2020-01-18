@@ -19,7 +19,7 @@ data class CursorState(
 class CursorContentSource(private val cursorProvider: CursorProvider,
                           private val stateProvider: StateProvider<CursorState>,
                           private val checkCount: Int,
-                          private val updateDelaySec: Int = 60) : ContentSource {
+                          private val updateDelaySec: Int) : ContentSource {
 
     private val logger = loggerFor<CursorContentSource>()
 

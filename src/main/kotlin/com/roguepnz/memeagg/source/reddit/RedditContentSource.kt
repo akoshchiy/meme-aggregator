@@ -11,7 +11,7 @@ class RedditContentSource(private val config: RedditConfig,
                           private val client: RedditClient,
                           stateProvider: StateProvider<CursorState>) : ContentSource {
 
-    private val source = CursorContentSource(cursorProvider(), stateProvider, config.lastUpdateCount)
+    private val source = CursorContentSource(cursorProvider(), stateProvider, config.lastUpdateCount, config.updateDelaySec)
 
     private fun cursorProvider(): CursorProvider {
         return {

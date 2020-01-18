@@ -14,7 +14,8 @@ class NGagGroupContentSource(private val config: NGagGroupConfig,
     private val cursorContentSource = CursorContentSource(
         prepareProvider(),
         stateProvider,
-        config.lastUpdateCount
+        config.lastUpdateCount,
+        config.updateDelaySec
     )
 
     private fun prepareProvider(): CursorProvider {

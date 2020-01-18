@@ -5,5 +5,5 @@ import com.typesafe.config.Config
 class NGagGroupConfig(config: Config) {
     val group = config.getString("group")
     val lastUpdateCount = config.getInt("lastUpdateCount")
-
+    val updateDelaySec = config.getInt("updateDelaySec")
 }
