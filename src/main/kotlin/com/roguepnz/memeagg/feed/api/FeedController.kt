@@ -1,8 +1,8 @@
 package com.roguepnz.memeagg.feed.api
 
 import com.roguepnz.memeagg.core.dao.ContentDao
-import com.roguepnz.memeagg.core.model.Content
 import com.roguepnz.memeagg.core.model.ContentView
+import com.roguepnz.memeagg.core.model.Feed
 import com.roguepnz.memeagg.http.KtorController
 import com.roguepnz.memeagg.http.RoutingConf
 import io.ktor.application.call

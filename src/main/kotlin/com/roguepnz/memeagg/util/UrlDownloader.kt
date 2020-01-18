@@ -16,6 +16,10 @@ class UrlDownloader(concurrentDownloads: Int, private val http: HttpClient) {
 
     private val pool = CoroutineWorkerPool(concurrentDownloads)
 
+    suspend fun downloadString(url: String): String {
+        return String(download(url).data)
+    }
+
     suspend fun download(url: String): DownloadResult {
         return pool.submit {
             try {

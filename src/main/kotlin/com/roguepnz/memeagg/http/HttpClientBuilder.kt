@@ -11,12 +11,13 @@ object HttpClientBuilder {
 
     fun build(): HttpClient {
         return HttpClient(Apache) {
-//            engine {
-//                customizeClient {
-//                    setMaxConnTotal()
-//                }
-//
-//            }
+            engine {
+                connectionRequestTimeout
+                customizeClient {
+
+                }
+
+            }
             install(JsonFeature) {
                 serializer = JacksonSerializer {
                     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

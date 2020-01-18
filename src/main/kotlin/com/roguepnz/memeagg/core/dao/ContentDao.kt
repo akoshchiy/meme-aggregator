@@ -3,7 +3,7 @@ package com.roguepnz.memeagg.core.dao
 import com.mongodb.client.model.*
 import com.roguepnz.memeagg.core.model.*
 import com.roguepnz.memeagg.db.Dao
-import com.roguepnz.memeagg.feed.api.Feed
+import com.roguepnz.memeagg.core.model.Feed
 import com.roguepnz.memeagg.source.config.SourceType
 import org.bson.Document
 import org.bson.types.ObjectId

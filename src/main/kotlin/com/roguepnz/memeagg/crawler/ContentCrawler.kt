@@ -62,7 +62,7 @@ class ContentCrawler(config: CrawlerConfig,
             item.raw.rating
         )
 
-        writer.updateMeta(update)
+        writer.update(update)
 
         logger.trace("crawl up: ${JSON.stringify(update)}")
     }

@@ -3,14 +3,15 @@ package com.roguepnz.memeagg.source
 import com.roguepnz.memeagg.source.config.ContentSourceConfig
 import com.roguepnz.memeagg.source.config.SourceType
 import com.roguepnz.memeagg.source.cursor.CursorState
-import com.roguepnz.memeagg.source.debeste.DebesteConfig
 import com.roguepnz.memeagg.source.debeste.DebesteContentSource
-import com.roguepnz.memeagg.source.debeste.DebesteState
 import com.roguepnz.memeagg.source.ngag.tag.NGagTagContentSource
 import com.roguepnz.memeagg.source.ngag.tag.NGagTagConfig
 import com.roguepnz.memeagg.source.ngag.NGagClient
 import com.roguepnz.memeagg.source.ngag.group.NGagGroupConfig
 import com.roguepnz.memeagg.source.ngag.group.NGagGroupContentSource
+import com.roguepnz.memeagg.source.orschlurch.OrschlurchContentSource
+import com.roguepnz.memeagg.source.page.PageConfig
+import com.roguepnz.memeagg.source.page.PageState
 import com.roguepnz.memeagg.source.reddit.RedditClient
 import com.roguepnz.memeagg.source.reddit.RedditConfig
 import com.roguepnz.memeagg.source.reddit.RedditContentSource
@@ -69,10 +70,18 @@ class ContentSourceBuilder(config: Config, private val http: HttpClient, private
                 )
             }
             SourceType.DEBESTE -> {
-                val conf = DebesteConfig(config.config)
+                val conf = PageConfig(config.config)
                 DebesteContentSource(
                     conf,
-                    DbStateProvider(db, config.id, DebesteState::class),
+                    DbStateProvider(db, config.id, PageState::class),
+                    UrlDownloader(conf.maxConcurrentDownloads, http)
+                )
+            }
+            SourceType.ORSCHLURCH -> {
+                val conf = PageConfig(config.config)
+                OrschlurchContentSource(
+                    conf,
+                    DbStateProvider(db, config.id, PageState::class),
                     UrlDownloader(conf.maxConcurrentDownloads, http)
                 )
             }

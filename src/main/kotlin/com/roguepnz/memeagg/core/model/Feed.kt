@@ -1,6 +1,5 @@
-package com.roguepnz.memeagg.feed.api
+package com.roguepnz.memeagg.core.model
 
-import com.roguepnz.memeagg.core.model.ContentPreview
 
 data class Feed(val items: List<ContentPreview>) {
     val count: Int get() = items.size

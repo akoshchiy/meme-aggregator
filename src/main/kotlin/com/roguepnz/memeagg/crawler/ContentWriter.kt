@@ -7,26 +7,21 @@ import com.roguepnz.memeagg.util.BatchWorker
 
 class ContentWriter(config: CrawlerConfig, dao: ContentDao) {
 
-    private val contentWorker = BatchWorker<Content>(
+    private val saveWorker = BatchWorker<Content>(
         config.writerQueueSize,
         config.writerWaitTimeSec
     ) { dao.insert(it) }
 
-    private val metaWorker = BatchWorker<ContentUpdate>(
+    private val updateWorker = BatchWorker<ContentUpdate>(
         config.writerQueueSize,
         config.writerWaitTimeSec
     ) { dao.update(it) }
 
-//    fun start(scope: CoroutineScope) {
-//        contentWorker.start(scope)
-//        metaWorker.start(scope)
-//    }
-
     suspend fun save(content: Content) {
-        contentWorker.add(content)
+        saveWorker.add(content)
     }
 
-    suspend fun updateMeta(meta: ContentUpdate) {
-        metaWorker.add(meta)
+    suspend fun update(meta: ContentUpdate) {
+        updateWorker.add(meta)
     }
 }
