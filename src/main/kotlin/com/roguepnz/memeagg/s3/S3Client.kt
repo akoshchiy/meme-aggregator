@@ -14,6 +14,18 @@ class S3Client(private val config: S3Config) {
 
     private val client = buildClient()
 
+    suspend fun
+            init() {
+        val b = client.listBuckets()
+            .await()
+            .buckets()
+            .find { it.name() == config.bucket }
+
+        if (b == null) {
+            createBucket(config.bucket)
+        }
+    }
+
     private fun buildClient(): S3AsyncClient {
         val credentials = AwsBasicCredentials.create(config.accessKey, config.secretKey)
 
@@ -40,14 +52,13 @@ class S3Client(private val config: S3Config) {
     }
 
     suspend fun upload(key: String, data: ByteArray, contentType: String): String {
-//        createBucket(config.bucket)
-
         val req = PutObjectRequest.builder()
             .bucket(config.bucket)
             .acl(ObjectCannedACL.PUBLIC_READ)
             .contentType(contentType)
             .key(key)
             .build()
+
 
         client.putObject(req, AsyncRequestBody.fromBytes(data)).await()
 

@@ -6,6 +6,7 @@ import com.roguepnz.memeagg.http.KtorController
 import com.roguepnz.memeagg.db.Dao
 import com.roguepnz.memeagg.db.DaoInitializer
 import com.roguepnz.memeagg.http.HttpServerBuilder
+import com.roguepnz.memeagg.s3.S3Client
 import kotlinx.coroutines.*
 
 fun main() {
@@ -13,6 +14,8 @@ fun main() {
         System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "./config/logback.xml")
 
         DaoInitializer.init(AppContainer.getAll(Dao::class))
+
+        AppContainer.get(S3Client::class).init()
 
         val nodeService = AppContainer.get(NodeService::class)
         nodeService.start()

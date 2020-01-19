@@ -85,7 +85,8 @@ class OrschlurchContentSource(config: PageConfig,
 
         val post = Jsoup.parse(downloader.downloadString("https://de.orschlurch.net/$url"), "https://de.orschlurch.net")
         if (type == "Videos") {
-            return listOf(Payload(ContentType.VIDEO, extractVideo(post)))
+            val video = extractVideo(post) ?: return ArrayList()
+            return listOf(Payload(ContentType.VIDEO, video))
         }
 
         if (type == "Pix") {
@@ -104,7 +105,8 @@ class OrschlurchContentSource(config: PageConfig,
         }
     }
 
-    private fun extractVideo(post: Element): String {
-        return post.selectFirst("video > source").attr("src")
+    private fun extractVideo(post: Element): String? {
+        val source = post.selectFirst("video > source")
+        return source?.attr("src")
     }
 }
