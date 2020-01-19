@@ -13,7 +13,7 @@ class ContentCrawler(config: CrawlerConfig,
                      private val writer: ContentWriter,
                      private val contentDao: ContentDao,
                      private val uploader: PayloadUploader,
-                     private val downloader: UrlDownloader) {
+                     private val downloader: PayloadDownloader) {
 
     private val logger = loggerFor<ContentCrawler>()
 

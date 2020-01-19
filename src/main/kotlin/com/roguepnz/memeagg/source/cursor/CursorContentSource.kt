@@ -1,14 +1,21 @@
 package com.roguepnz.memeagg.source.cursor
 
+import com.roguepnz.memeagg.metrics.MetricsService
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.RawContent
 import com.roguepnz.memeagg.source.state.StateProvider
+import com.roguepnz.memeagg.util.MetricChannel
+import com.roguepnz.memeagg.util.Times
 import com.roguepnz.memeagg.util.loggerFor
+import io.micrometer.core.instrument.Counter
+import io.micrometer.core.instrument.Gauge
+import io.micrometer.core.instrument.Tag
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.time.delay
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
 
 
 data class CursorState(
@@ -19,14 +26,41 @@ data class CursorState(
 class CursorContentSource(private val cursorProvider: CursorProvider,
                           private val stateProvider: StateProvider<CursorState>,
                           private val checkCount: Int,
-                          private val updateDelaySec: Int) : ContentSource {
+                          private val updateDelaySec: Int,
+                          private val metrics: MetricsService,
+                          private val tag: String) : ContentSource {
 
     private val logger = loggerFor<CursorContentSource>()
-
     private val scope = CoroutineScope(Dispatchers.IO)
 
+    private val startTime = Times.now()
+
+    private val crawledCounter = Counter.builder("crawler.source.itemcount")
+        .tag("type", tag)
+        .description("total crawled items count")
+        .register(metrics.registry)
+
+    init {
+        Gauge.builder("crawler.source.rate", this::getCrawlRate)
+            .tag("type", tag)
+            .description("source crawling rate in items per sec")
+            .register(metrics.registry)
+    }
+
+    private fun getCrawlRate(): Double {
+        val secs = Times.now() - startTime
+        return crawledCounter.count() / secs
+    }
+
+    private fun buildChannel(): Channel<RawContent> {
+        val metric = metrics.registry
+            .gauge("crawler.source.queuesize", listOf(Tag.of("type", tag)), AtomicInteger(0))!!
+
+        return MetricChannel(Channel(Channel.UNLIMITED), metric)
+    }
+
     override fun listen(): ReceiveChannel<RawContent> {
-        val channel = Channel<RawContent>(Channel.UNLIMITED)
+        val channel = buildChannel()
         scope.launch {
             crawl(channel)
         }
@@ -55,6 +89,7 @@ class CursorContentSource(private val cursorProvider: CursorProvider,
             }
 
             content.data.forEach {
+                crawledCounter.increment()
                 channel.send(it)
             }
 

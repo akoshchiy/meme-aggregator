@@ -1,5 +1,6 @@
 package com.roguepnz.memeagg.source.ngag.group
 
+import com.roguepnz.memeagg.metrics.MetricsService
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.cursor.*
 import com.roguepnz.memeagg.source.model.RawContent
@@ -9,13 +10,16 @@ import kotlinx.coroutines.channels.ReceiveChannel
 
 class NGagGroupContentSource(private val config: NGagGroupConfig,
                              private val client: NGagClient,
-                             stateProvider: StateProvider<CursorState>) : ContentSource {
+                             stateProvider: StateProvider<CursorState>,
+                             metrics: MetricsService) : ContentSource {
 
     private val cursorContentSource = CursorContentSource(
         prepareProvider(),
         stateProvider,
         config.lastUpdateCount,
-        config.updateDelaySec
+        config.updateDelaySec,
+        metrics,
+        "ngag_group"
     )
 
     private fun prepareProvider(): CursorProvider {

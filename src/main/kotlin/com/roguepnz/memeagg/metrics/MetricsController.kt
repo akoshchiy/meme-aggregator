@@ -9,7 +9,7 @@ import io.ktor.routing.get
 class MetricsController(private val metricsService: MetricsService) : KtorController {
 
     override fun routing(): RoutingConf = {
-        get("/metrics/prometheus") {
+        get("/metrics") {
             val resp = metricsService.scrapePrometheus()
             call.respond(resp)
         }

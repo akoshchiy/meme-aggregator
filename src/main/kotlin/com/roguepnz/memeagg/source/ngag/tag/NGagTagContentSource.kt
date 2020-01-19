@@ -1,5 +1,6 @@
 package com.roguepnz.memeagg.source.ngag.tag
 
+import com.roguepnz.memeagg.metrics.MetricsService
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.cursor.*
 import com.roguepnz.memeagg.source.model.RawContent
@@ -10,13 +11,16 @@ import kotlinx.coroutines.channels.ReceiveChannel
 
 class NGagTagContentSource(private val config: NGagTagConfig,
                            private val client: NGagClient,
-                           stateProvider: StateProvider<CursorState>) : ContentSource {
+                           stateProvider: StateProvider<CursorState>,
+                           metrics: MetricsService) : ContentSource {
 
     private val cursorContentSource = CursorContentSource(
         cursorProvider(),
         stateProvider,
         config.lastUpdateCount,
-        config.updateDelaySec
+        config.updateDelaySec,
+        metrics,
+        "ngag_tag"
     )
 
     private fun cursorProvider(): CursorProvider {

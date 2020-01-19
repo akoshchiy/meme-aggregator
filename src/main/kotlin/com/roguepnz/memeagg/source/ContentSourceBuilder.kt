@@ -1,5 +1,6 @@
 package com.roguepnz.memeagg.source
 
+import com.roguepnz.memeagg.metrics.MetricsService
 import com.roguepnz.memeagg.source.config.ContentSourceConfig
 import com.roguepnz.memeagg.source.config.SourceType
 import com.roguepnz.memeagg.source.cursor.CursorState
@@ -21,7 +22,10 @@ import com.typesafe.config.Config
 import io.ktor.client.HttpClient
 import org.litote.kmongo.coroutine.CoroutineDatabase
 
-class ContentSourceBuilder(config: Config, private val http: HttpClient, private val db: CoroutineDatabase) {
+class ContentSourceBuilder(config: Config,
+                           private val http: HttpClient,
+                           private val db: CoroutineDatabase,
+                           private val metrics: MetricsService) {
 
     private val configs: Map<String, ContentSourceConfig> = readConfig(config)
 
@@ -51,14 +55,16 @@ class ContentSourceBuilder(config: Config, private val http: HttpClient, private
                 NGagTagContentSource(
                     NGagTagConfig(config.config),
                     NGagClient(http),
-                    DbStateProvider(db, config.id, CursorState::class)
+                    DbStateProvider(db, config.id, CursorState::class),
+                    metrics
                 )
             }
             SourceType.NGAG_GROUP -> {
                 NGagGroupContentSource(
                     NGagGroupConfig(config.config),
                     NGagClient(http),
-                    DbStateProvider(db, config.id, CursorState::class)
+                    DbStateProvider(db, config.id, CursorState::class),
+                    metrics
                 )
             }
             SourceType.REDDIT -> {
@@ -66,7 +72,8 @@ class ContentSourceBuilder(config: Config, private val http: HttpClient, private
                 RedditContentSource(
                     conf,
                     RedditClient(conf, http),
-                    DbStateProvider(db, config.id, CursorState::class)
+                    DbStateProvider(db, config.id, CursorState::class),
+                    metrics
                 )
             }
             SourceType.DEBESTE -> {
@@ -74,6 +81,7 @@ class ContentSourceBuilder(config: Config, private val http: HttpClient, private
                 DebesteContentSource(
                     conf,
                     DbStateProvider(db, config.id, PageState::class),
+                    metrics,
                     UrlDownloader(conf.maxConcurrentDownloads, http)
                 )
             }
@@ -82,6 +90,7 @@ class ContentSourceBuilder(config: Config, private val http: HttpClient, private
                 OrschlurchContentSource(
                     conf,
                     DbStateProvider(db, config.id, PageState::class),
+                    metrics,
                     UrlDownloader(conf.maxConcurrentDownloads, http)
                 )
             }

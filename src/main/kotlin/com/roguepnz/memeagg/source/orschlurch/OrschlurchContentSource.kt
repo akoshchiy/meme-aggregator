@@ -1,6 +1,7 @@
 package com.roguepnz.memeagg.source.orschlurch
 
 import com.roguepnz.memeagg.core.model.ContentType
+import com.roguepnz.memeagg.metrics.MetricsService
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.Payload
 import com.roguepnz.memeagg.source.model.RawContent
@@ -17,6 +18,7 @@ private const val TIME_FORMAT = "dd.MM.yyyy"
 
 class OrschlurchContentSource(config: PageConfig,
                               stateProvider: StateProvider<PageState>,
+                              metrics: MetricsService,
                               private val downloader: UrlDownloader) : ContentSource {
 
     private val source = PageContentSource(
@@ -24,6 +26,8 @@ class OrschlurchContentSource(config: PageConfig,
         this::getPageUrl,
         this::parsePage,
         downloader,
+        metrics,
+        "orschlurch",
         stateProvider
     )
 

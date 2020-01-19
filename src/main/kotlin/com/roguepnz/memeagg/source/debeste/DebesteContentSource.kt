@@ -1,6 +1,7 @@
 package com.roguepnz.memeagg.source.debeste
 
 import com.roguepnz.memeagg.core.model.ContentType
+import com.roguepnz.memeagg.metrics.MetricsService
 import com.roguepnz.memeagg.util.UrlDownloader
 import com.roguepnz.memeagg.source.ContentSource
 import com.roguepnz.memeagg.source.model.Payload
@@ -27,6 +28,7 @@ private val TIME_RE = Pattern.compile("hinzugefügt: (\\d{4}-\\d{2}-\\d{2} \\d+:
 
 class DebesteContentSource(config: PageConfig,
                            stateProvider: StateProvider<PageState>,
+                           metrics: MetricsService,
                            private val downloader: UrlDownloader) : ContentSource {
 
     private val source = PageContentSource(
@@ -34,6 +36,8 @@ class DebesteContentSource(config: PageConfig,
         this::getPageUrl,
         this::pagePage,
         downloader,
+        metrics,
+        "debeste",
         stateProvider
     )
 
