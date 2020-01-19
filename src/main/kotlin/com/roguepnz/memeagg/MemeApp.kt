@@ -20,7 +20,7 @@ fun main() {
         val nodeService = AppContainer.get(NodeService::class)
         nodeService.start()
 
-        val server = HttpServerBuilder.build(Config.server, AppContainer.getAll(KtorController::class))
+        val server = HttpServerBuilder.build(Configs.server, AppContainer.getAll(KtorController::class))
         server.start(true)
     }
 }

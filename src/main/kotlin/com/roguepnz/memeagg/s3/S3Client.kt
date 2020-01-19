@@ -1,5 +1,6 @@
 package com.roguepnz.memeagg.s3
 
+import com.roguepnz.memeagg.util.loggerFor
 import kotlinx.coroutines.future.await
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
@@ -12,17 +13,22 @@ import java.net.URI
 
 class S3Client(private val config: S3Config) {
 
+    private val logger = loggerFor<S3Client>()
+
     private val client = buildClient()
 
-    suspend fun
-            init() {
-        val b = client.listBuckets()
-            .await()
-            .buckets()
-            .find { it.name() == config.bucket }
+    suspend fun init() {
+        try {
+            val b = client.listBuckets()
+                .await()
+                .buckets()
+                .find { it.name() == config.bucket }
 
-        if (b == null) {
-            createBucket(config.bucket)
+            if (b == null) {
+                createBucket(config.bucket)
+            }
+        } catch (e: Exception) {
+            logger.error("s3 create bucket failed", e)
         }
     }
 

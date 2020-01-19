@@ -9,14 +9,16 @@ import io.ktor.client.features.json.JsonFeature
 
 object HttpClientBuilder {
 
-    fun build(): HttpClient {
+    fun build(config: HttpClientConfig): HttpClient {
         return HttpClient(Apache) {
             engine {
-                connectionRequestTimeout
+                connectionRequestTimeout = config.connectionRequestTimeout
+                connectTimeout = config.connectTimeout
+                socketTimeout = config.socketTimeout
                 customizeClient {
-
+                    setMaxConnTotal(config.maxConnTotal)
+                    setMaxConnPerRoute(config.maxConnPerRoute)
                 }
-
             }
             install(JsonFeature) {
                 serializer = JacksonSerializer {

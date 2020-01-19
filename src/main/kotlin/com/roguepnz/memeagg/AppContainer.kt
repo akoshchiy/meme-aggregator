@@ -45,35 +45,35 @@ object AppContainer {
 
     init {
         put(MetricsService())
-        put(HttpClientBuilder.build())
-        put(S3Client(Config.s3))
+        put(HttpClientBuilder.build(Configs.http))
+        put(S3Client(Configs.s3))
 
-        put(PayloadUploader(Config.crawler, get(S3Client::class), get(MetricsService::class)))
+        put(PayloadUploader(Configs.crawler, get(S3Client::class), get(MetricsService::class)))
 
         put(MongoDbBuilder.build())
         put(ContentDao(get(CoroutineDatabase::class)))
 
-        put(ContentSourceBuilder(Config.sources, get(HttpClient::class), get(CoroutineDatabase::class), get(MetricsService::class)))
-        put(ContentWriter(Config.crawler, get(ContentDao::class), get(MetricsService::class)))
+        put(ContentSourceBuilder(Configs.sources, get(HttpClient::class), get(CoroutineDatabase::class), get(MetricsService::class)))
+        put(ContentWriter(Configs.crawler, get(ContentDao::class), get(MetricsService::class)))
 
         put(
             ContentCrawler(
-                Config.crawler,
+                Configs.crawler,
                 get(ContentWriter::class),
                 get(ContentDao::class),
                 get(PayloadUploader::class),
                 PayloadDownloader(
-                    UrlDownloader(Config.crawler.maxConcurrentDownloads, get(HttpClient::class)),
+                    UrlDownloader(Configs.crawler.maxConcurrentDownloads, get(HttpClient::class)),
                     get(MetricsService::class)
                )
             )
         )
 
-        put(NodeSourceDao(Config.node, get(CoroutineDatabase::class)))
+        put(NodeSourceDao(Configs.node, get(CoroutineDatabase::class)))
 
         put(
             NodeService(
-                Config.node,
+                Configs.node,
                 get(NodeSourceDao::class),
                 get(ContentSourceBuilder::class),
                 get(ContentCrawler::class)

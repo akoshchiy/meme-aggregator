@@ -1,6 +1,6 @@
 package com.roguepnz.memeagg.db
 
-import com.roguepnz.memeagg.Config
+import com.roguepnz.memeagg.Configs
 import org.litote.kmongo.coroutine.CoroutineDatabase
 import org.litote.kmongo.coroutine.coroutine
 import org.litote.kmongo.reactivestreams.KMongo
@@ -8,7 +8,7 @@ import org.litote.kmongo.reactivestreams.KMongo
 object MongoDbBuilder {
 
     fun build(): CoroutineDatabase {
-        val config = Config.db
+        val config = Configs.db
         val host = config.getString("host")
         val port = config.getInt("port")
         val db = config.getString("db")
