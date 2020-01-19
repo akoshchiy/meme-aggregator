@@ -26,6 +26,12 @@
 * WRITER_WAIT_TIME_SEС - минимальное время ожидания батча записи в БД
 * MAX_CONCURRENT_UPLOADS - максимальное количество одновременных аплоадов в s3 
 * MAX_CONCURRENT_DOWNLOADS - максимальное количество одновременных загрузок
+* HTTP_SOCKET_TIMEOUT - таймаут TCP пакетов
+* HTTP_CONNECT_TIMEOUT - таймаут на установку HTTP соединения
+* HTTP_CONNECTION_REQUEST_TIMEOUT - таймаут на ожидание начала HTTP соединения
+* HTTP_MAX_CONN_TOTAL - максимальное число HTTP-соединений
+* HTTP_MAX_CONN_PER_ROUTE - максимальное число HTTP-соединений на один хост
+* CRAWL_LOG_LEVEL - уровень логирования для краулера
 
 ## Сборка и запуск
 в корне проекта выполнить 

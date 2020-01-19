@@ -7,7 +7,7 @@
         </encoder>
     </appender>
 
-    <logger name="com.roguepnz.memeagg" level="trace" />
+    <logger name="com.roguepnz.memeagg" level="${CRAWLER_LOG_LEVEL:-info}" />
 
     <root level="info">
         <appender-ref ref="STDOUT" />
