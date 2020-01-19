@@ -43,7 +43,7 @@ class ContentWriter(config: CrawlerConfig, dao: ContentDao, metrics: MetricsServ
     }
 
     private val saveWorker = BatchWorker<Content>(
-        config.writerQueueSize,
+        config.writerBatchSize,
         config.writerWaitTimeSec
     ) {
         requestsCount.increment()
@@ -52,7 +52,7 @@ class ContentWriter(config: CrawlerConfig, dao: ContentDao, metrics: MetricsServ
     }
 
     private val updateWorker = BatchWorker<ContentUpdate>(
-        config.writerQueueSize,
+        config.writerBatchSize,
         config.writerWaitTimeSec
     ) {
         requestsCount.increment()

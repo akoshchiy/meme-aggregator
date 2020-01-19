@@ -3,10 +3,10 @@ package com.roguepnz.memeagg.crawler
 import com.typesafe.config.Config
 
 class CrawlerConfig(config: Config) {
-    val writerQueueSize = config.getInt("writerQueueSize")
+    val writerBatchSize = config.getInt("writerBatchSize")
     val writerWaitTimeSec = config.getInt("writerWaitTimeSec")
 
-    val crawlerQueueSize = config.getInt("crawlerQueueSize")
+    val crawlerBatchSize = config.getInt("crawlerBatchSize")
     val crawlerWaitTimeSec = config.getInt("crawlerWaitTimeSec")
 
     val maxConcurrentUploads = config.getInt("maxConcurrentUploads")

@@ -34,7 +34,6 @@ dependencies {
     implementation("software.amazon.awssdk:s3:2.10.42")
     implementation("org.jsoup:jsoup:1.12.1")
     implementation("io.micrometer:micrometer-registry-prometheus:1.3.2")
-//    implementation("org.litote.kmongo:kmongo:$kmongoVersion")
     testCompile("junit:junit:4.12")
 }
 

@@ -23,7 +23,7 @@ class ContentCrawler(config: CrawlerConfig,
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
-    private val batchWorker = BatchWorker(config.crawlerQueueSize, config.crawlerWaitTimeSec, this::handleBatch)
+    private val batchWorker = BatchWorker(config.crawlerBatchSize, config.crawlerWaitTimeSec, this::handleBatch)
 
     fun crawl(sourceId: String, type: SourceType, source: ContentSource) {
         scope.launch {
