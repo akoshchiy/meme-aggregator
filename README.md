@@ -1,5 +1,5 @@
 # meme-aggregator
-Конкурсное задание для https://funcodechallenge.com/
+Конкурсное задание для FunCorp Java/Kotlin challenge https://funcodechallenge.com/
 
 ## Стек
 * java11
